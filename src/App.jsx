@@ -153,7 +153,8 @@ function App() {
       fontSize: '1em',
       transition: 'all 0.3s ease',
       background: '#f8f9fa',
-      boxSizing: 'border-box'
+      boxSizing: 'border-box',
+      color: '#2c3e50' // Устанавливаем тёмный цвет текста для лучшей видимости
     },
     calculateBtn: {
       background: 'linear-gradient(45deg, #3498db, #2980b9)',
@@ -234,12 +235,16 @@ function App() {
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>Количество этажей</label>
-              <input 
-                type="number" 
-                value={floors} 
+              <select
+                value={floors}
                 onChange={(e) => setFloors(Number(e.target.value))}
                 style={styles.input}
-              />
+              >
+                {/* Создаем опции от 1 до 100 этажей */}
+                {Array.from({length: 100}, (_, i) => i + 1).map(num => (
+                  <option key={num} value={num}>{num}</option>
+                ))}
+              </select>
             </div>
 
             <div style={styles.inputGroup}>
