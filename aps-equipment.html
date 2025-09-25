@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оборудование АПС</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        .dropdown-button {
+            background-color: #e74c3c;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .dropdown-button:hover {
+            background-color: #c0392b;
+        }
+
+        .dropdown-button:after {
+            content: "▼";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 100%;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown.active .dropdown-content {
+            display: block;
+        }
+
+        .equipment-info {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .equipment-info h3 {
+            color: #e74c3c;
+            margin-top: 0;
+        }
+
+        .equipment-info ul {
+            padding-left: 20px;
+        }
+
+        .equipment-info li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Список оборудования системы АПС</h1>
+        
+        <div class="dropdown">
+            <button class="dropdown-button" onclick="toggleDropdown()">
+                Выберите категорию оборудования
+            </button>
+            <div class="dropdown-content" id="dropdownContent">
+                <a href="#" onclick="showInfo('detectors')">Пожарные извещатели</a>
+                <a href="#" onclick="showInfo('control-panels')">Приборы приемно-контрольные</a>
+                <a href="#" onclick="showInfo('notification')">Оповещатели пожарные</a>
+                <a href="#" onclick="showInfo('power-supplies')">Источники питания</a>
+                <a href="#" onclick="showInfo('cables')">Кабельная продукция</a>
+                <a href="#" onclick="showInfo('manual-call-points')">Ручные пожарные извещатели</a>
+                <a href="#" onclick="showInfo('indicators')">Световые табло</a>
+                <a href="#" onclick="showInfo('relay-modules')">Релейные модули</a>
+            </div>
+        </div>
+
+        <div id="detectors" class="equipment-info">
+            <h3>Пожарные извещатели</h3>
+            <ul>
+                <li><strong>ИП 212-141</strong> - Дымовой оптико-электронный</li>
+                <li><strong>ИП 101-1А</strong> - Тепловой максимальный</li>
+                <li><strong>ИП 329-3</strong> - Пламени инфракрасный</li>
+                <li><strong>ИП 435-1</strong> - Дымовой аспирационный</li>
+                <li><strong>ИП 212-50М2</strong> - Дымовой оптико-электронный адресный</li>
+                <li><strong>ИП 104-1</strong> - Тепловой дифференциальный</li>
+                <li><strong>ИП 330-1</strong> - Пламени ультрафиолетовый</li>
+            </ul>
+        </div>
+
+        <div id="control-panels" class="equipment-info">
+            <h3>Приборы приемно-контрольные</h3>
+            <ul>
+                <li><strong>С2000-АСПТ</strong> - Адресный прибор на 127 устройств</li>
+                <li><strong>Болид С2000-4</strong> - 4-х шлейфовый прибор</li>
+                <li><strong>ВЭРС-ПК 2П</strong> - 2-х шлейфовый прибор</li>
+                <li><strong>Рубеж ПК-04</strong> - 4-х шлейфовый прибор</li>
+                <li><strong>Сигнал-20П</strong> - 20-ти шлейфовый прибор</li>
+                <li><strong>С2000-КДЛ</strong> - Контроллер двухпроводной линии</li>
+            </ul>
+        </div>
+
+        <div id="notification" class="equipment-info">
+            <h3>Оповещатели пожарные</h3>
+            <ul>
+                <li><strong>ОП-2</strong> - Звуковой оповещатель</li>
+                <li><strong>ОПОП 1-8</strong> - Оптико-звуковой</li>
+                <li><strong>Маяк-12К</strong> - Световой оповещатель</li>
+                <li><strong>Соната-3</strong> - Речевой оповещатель</li>
+                <li><strong>ОСЗ-3</strong> - Оповещатель светозвуковой</li>
+                <li><strong>РОКОТ-3</strong> - Речевой пожарный оповещатель</li>
+            </ul>
+        </div>
+
+        <div id="power-supplies" class="equipment-info">
+            <h3>Источники питания</h3>
+            <ul>
+                <li><strong>РИП-12 исп.01</strong> - Резервированный источник питания 12В/1А</li>
+                <li><strong>РИП-24 исп.10</strong> - Резервированный источник питания 24В/3А</li>
+                <li><strong>СКАТ-2400</strong> - Источник вторичного питания</li>
+                <li><strong>Бастион SKAT 12/7</strong> - ИБП для систем безопасности</li>
+                <li><strong>РИП-48 исп.11</strong> - Источник питания 48В/2А</li>
+            </ul>
+        </div>
+
+        <div id="cables" class="equipment-info">
+            <h3>Кабельная продукция</h3>
+            <ul>
+                <li><strong>КПСнг(А)-FRLS 1х2х0.75</strong> - Кабель для пожарных систем</li>
+                <li><strong>J-Y(St)Y 2х2х0.8</strong> - Кабель для передачи данных</li>
+                <li><strong>ПвПГнг(А)-FRLS 1х4</strong> - Провод для пожарных систем</li>
+                <li><strong>КПСнг-FRLS 2х2х1.5</strong> - Огнестойкий кабель</li>
+                <li><strong>КПСВВ 4х0.5</strong> - Кабель витая пара</li>
+            </ul>
+        </div>
+
+        <div id="manual-call-points" class="equipment-info">
+            <h3>Ручные пожарные извещатели</h3>
+            <ul>
+                <li><strong>ИПР 513-3А</strong> - Адресный ручной извещатель</li>
+                <li><strong>ИПР 55</strong> - Ручной пожарный извещатель</li>
+                <li><strong>РПКП-2</strong> - Извещатель ручной красный</li>
+                <li><strong>ИПР-П</strong> - Пороговый ручной извещатель</li>
+                <li><strong>ИПР-3СУМ</strong> - Ручной извещатель с защитным колпачком</li>
+            </ul>
+        </div>
+
+        <div id="indicators" class="equipment-info">
+            <h3>Световые табло</h3>
+            <ul>
+                <li><strong>Призма-102</strong> - Табло "Выход"</li>
+                <li><strong>Призма-201</strong> - Табло "Пожар"</li>
+                <li><strong>КРИСТАЛЛ-12</strong> - Световое табло "Выход"</li>
+                <li><strong>Молния-12</strong> - Табло указательное</li>
+                <li><strong>Exit-LED-24</strong> - Светодиодное табло "Exit"</li>
+            </ul>
+        </div>
+
+        <div id="relay-modules" class="equipment-info">
+            <h3>Релейные модули</h3>
+            <ul>
+                <li><strong>С2000-СП1 исп.02</strong> - Адресный релейный модуль</li>
+                <li><strong>РК-1</strong> - Релейный коммутатор</li>
+                <li><strong>МРК-1</strong> - Модуль релейный коммутирующий</li>
+                <li><strong>Р-1</strong> - Релейный модуль промежуточный</li>
+                <li><strong>МРО-2М</strong> - Модуль релейных выходов</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function toggleDropdown() {
+            document.querySelector('.dropdown').classList.toggle('active');
+        }
+
+        function showInfo(category) {
+            // Скрываем все блоки с информацией
+            const allInfo = document.querySelectorAll('.equipment-info');
+            allInfo.forEach(info => {
+                info.style.display = 'none';
+            });
+
+            // Показываем выбранный блок
+            document.getElementById(category).style.display = 'block';
+
+            // Закрываем выпадающий список
+            document.querySelector('.dropdown').classList.remove('active');
+
+            // Обновляем текст кнопки
+            const categoryNames = {
+                'detectors': 'Пожарные извещатели',
+                'control-panels': 'Приборы приемно-контрольные',
+                'notification': 'Оповещатели пожарные',
+                'power-supplies': 'Источники питания',
+                'cables': 'Кабельная продукция',
+                'manual-call-points': 'Ручные пожарные извещатели',
+                'indicators': 'Световые табло',
+                'relay-modules': 'Релейные модули'
+            };
+            
+            document.querySelector('.dropdown-button').textContent = categoryNames[category];
+        }
+
+        // Закрытие выпадающего списка при клике вне его
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown-button')) {
+                document.querySelector('.dropdown').classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
