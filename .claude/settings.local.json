@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(start aps-equipment.html)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
