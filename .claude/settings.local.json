@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(start aps-equipment.html)"
+      "Bash(start aps-equipment.html)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run lint)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

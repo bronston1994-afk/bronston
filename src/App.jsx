@@ -5,9 +5,56 @@ function App() {
   const [undergroundArea, setUndergroundArea] = useState(200) // Подземная парковка
   const [aboveGroundFloors, setAboveGroundFloors] = useState(3) // Этажи надземной части
   const [undergroundFloors, setUndergroundFloors] = useState(1) // Этажи подземной части
-  const [floors, setFloors] = useState(3) // Общее количество этажей (для совместимости)
-  const [apartmentsCount, setApartmentsCount] = useState(50) // Количество квартир
-  const [roomsPerApartment, setRoomsPerApartment] = useState(2) // Количество комнат в квартире
+  const [apartmentsCount, setApartmentsCount] = useState(50) // Общее количество квартир
+
+  // Детализированный выбор квартир по комнатности
+  const [apartment1Room, setApartment1Room] = useState(10) // Количество 1-комнатных квартир
+  const [apartment2Room, setApartment2Room] = useState(20) // Количество 2-комнатных квартир
+  const [apartment3Room, setApartment3Room] = useState(15) // Количество 3-комнатных квартир
+  const [apartment4Room, setApartment4Room] = useState(3) // Количество 4-комнатных квартир
+  const [apartment5Room, setApartment5Room] = useState(2) // Количество 5-комнатных квартир
+  const [apartment6Room, setApartment6Room] = useState(0) // Количество 6-комнатных квартир
+  const [apartment7Room, setApartment7Room] = useState(0) // Количество 7-комнатных квартир
+  const [useDetailedApartments, setUseDetailedApartments] = useState(false) // Переключатель режима
+
+  // Детальный выбор помещений по типам
+  const [useDetailedRooms, setUseDetailedRooms] = useState(false) // Переключатель детального режима помещений
+
+  // Жилые помещения
+  const [livingRoomCount, setLivingRoomCount] = useState(0)
+  const [livingRoomArea, setLivingRoomArea] = useState(0)
+  const [bedroomCount, setBedroomCount] = useState(0)
+  const [bedroomArea, setBedroomArea] = useState(0)
+  const [kitchenCount, setKitchenCount] = useState(0)
+  const [kitchenArea, setKitchenArea] = useState(0)
+  const [bathroomCount, setBathroomCount] = useState(0)
+  const [bathroomArea, setBathroomArea] = useState(0)
+  const [hallwayCount, setHallwayCount] = useState(0)
+  const [hallwayArea, setHallwayArea] = useState(0)
+
+  // Общие помещения
+  const [stairwellCount, setStairwellCount] = useState(0)
+  const [stairwellArea, setStairwellArea] = useState(0)
+  const [elevatorHallCount, setElevatorHallCount] = useState(0)
+  const [elevatorHallArea, setElevatorHallArea] = useState(0)
+  const [commonCorridorCount, setCommonCorridorCount] = useState(0)
+  const [commonCorridorArea, setCommonCorridorArea] = useState(0)
+
+  // Технические помещения
+  const [techVentilationCount, setTechVentilationCount] = useState(0)
+  const [techVentilationArea, setTechVentilationArea] = useState(0)
+  const [techElectricalCount, setTechElectricalCount] = useState(0)
+  const [techElectricalArea, setTechElectricalArea] = useState(0)
+  const [techHeatingCount, setTechHeatingCount] = useState(0)
+  const [techHeatingArea, setTechHeatingArea] = useState(0)
+
+  // Подсобные помещения
+  const [storageCount, setStorageCount] = useState(0)
+  const [storageArea, setStorageArea] = useState(0)
+  const [wasteRoomCount, setWasteRoomCount] = useState(0)
+  const [wasteRoomArea, setWasteRoomArea] = useState(0)
+  const [parkingCount, setParkingCount] = useState(0)
+  const [parkingArea, setParkingArea] = useState(0)
   const [rooms, setRooms] = useState(25)
   const [height, setHeight] = useState(3.0)
   const [buildingType, setBuildingType] = useState('residential_apartment')
@@ -24,6 +71,30 @@ function App() {
   // Общее количество этажей (надземные + подземные)
   const totalFloors = aboveGroundFloors + undergroundFloors
 
+  // Расчет общих характеристик квартир
+  const calculatedApartmentsCount = useDetailedApartments
+    ? apartment1Room + apartment2Room + apartment3Room + apartment4Room + apartment5Room + apartment6Room + apartment7Room
+    : apartmentsCount
+
+  // Средняя комнатность при детальном режиме
+  const averageRoomsPerApartment = useDetailedApartments && calculatedApartmentsCount > 0
+    ? (apartment1Room * 1 + apartment2Room * 2 + apartment3Room * 3 + apartment4Room * 4 + apartment5Room * 5 + apartment6Room * 6 + apartment7Room * 7) / calculatedApartmentsCount
+    : 2
+
+  // Расчет общего количества помещений при детальном режиме
+  const calculatedRoomsCount = useDetailedRooms
+    ? stairwellCount + elevatorHallCount + commonCorridorCount +
+      techVentilationCount + techElectricalCount + techHeatingCount +
+      storageCount + wasteRoomCount + parkingCount
+    : rooms
+
+  // Расчет общей площади помещений при детальном режиме (площадь 1 помещения × количество)
+  const calculatedRoomsArea = useDetailedRooms
+    ? (stairwellArea * stairwellCount) + (elevatorHallArea * elevatorHallCount) + (commonCorridorArea * commonCorridorCount) +
+      (techVentilationArea * techVentilationCount) + (techElectricalArea * techElectricalCount) + (techHeatingArea * techHeatingCount) +
+      (storageArea * storageCount) + (wasteRoomArea * wasteRoomCount) + (parkingArea * parkingCount)
+    : 0
+
   const calculateEquipment = () => {
     // Используем общую площадь для расчётов
     const area = totalArea
@@ -31,35 +102,109 @@ function App() {
     // Расчёт зон контроля (ЗКПС) - основа для всех расчётов
     const zones = Math.ceil(area / zoneSize)
 
+    // Расчёт максимальной площади покрытия одним дымовым извещателем согласно СП 5.13130.2009
+    // Базовое значение 85 м² при высоте до 3.5м, уменьшается при большей высоте
+    const getMaxDetectorCoverage = (ceilingHeight, baseArea = 85) => {
+      if (ceilingHeight <= 3.5) {
+        return baseArea
+      } else if (ceilingHeight <= 6.0) {
+        // При высоте 3.5-6м площадь уменьшается пропорционально
+        return Math.max(baseArea * (3.5 / ceilingHeight), 55)
+      } else {
+        // При высоте свыше 6м - минимальная площадь
+        return 55
+      }
+    }
+
+    // Корректированная площадь покрытия с учетом высоты помещения
+    const adjustedDetectorCoverage = getMaxDetectorCoverage(height)
+
     // Расчёт датчиков с учётом квартир и комнат для жилых зданий
     let totalDetectors
     if (buildingType === 'residential_apartment') {
-      // Для жилых квартир: минимум 1 датчик на комнату + кухня + коридор
-      const detectorsPerApartment = roomsPerApartment + 2 // комнаты + кухня + коридор
-      totalDetectors = apartmentsCount * detectorsPerApartment
-      // Добавляем датчики для общих зон (лестницы, коридоры)
-      // Надземные этажи: 2 датчика на этаж, подземные: 1 датчик на этаж
-      const aboveGroundCommonDetectors = Math.ceil(aboveGroundFloors * 2)
-      const undergroundCommonDetectors = Math.ceil(undergroundFloors * 1)
-      const commonAreaDetectors = aboveGroundCommonDetectors + undergroundCommonDetectors
-      totalDetectors += commonAreaDetectors
+      if (useDetailedRooms) {
+        // Детальный режим помещений: точный расчет по типам помещений
+        let detectorsByRoomType = 0
+
+        // Общие помещения
+        detectorsByRoomType += stairwellCount     // лестничные клетки - дымовые
+        detectorsByRoomType += elevatorHallCount  // лифтовые холлы - дымовые
+        detectorsByRoomType += commonCorridorCount // общие коридоры - дымовые
+
+        // Технические помещения
+        detectorsByRoomType += techVentilationCount // венткамеры
+        detectorsByRoomType += techElectricalCount  // электрощитовые
+        detectorsByRoomType += techHeatingCount     // ИТП
+
+        // Подсобные помещения
+        detectorsByRoomType += storageCount    // кладовые
+        detectorsByRoomType += wasteRoomCount  // мусорные камеры
+        detectorsByRoomType += parkingCount    // парковочные места
+
+        totalDetectors = detectorsByRoomType
+
+        // Дополнительная проверка по площади помещений (если указана)
+        if (calculatedRoomsArea > 0) {
+          const detectorsByRoomArea = Math.ceil(calculatedRoomsArea / adjustedDetectorCoverage)
+          totalDetectors = Math.max(totalDetectors, detectorsByRoomArea)
+        }
+
+      } else if (useDetailedApartments) {
+        // Детальный режим квартир: считаем датчики для каждого типа квартир
+        const detectors1Room = apartment1Room * (1 + 2) // комнаты + кухня + коридор
+        const detectors2Room = apartment2Room * (2 + 2) // комнаты + кухня + коридор
+        const detectors3Room = apartment3Room * (3 + 2) // комнаты + кухня + коридор
+        const detectors4Room = apartment4Room * (4 + 2) // комнаты + кухня + коридор
+        const detectors5Room = apartment5Room * (5 + 2) // комнаты + кухня + коридор
+        const detectors6Room = apartment6Room * (6 + 2) // комнаты + кухня + коридор
+        const detectors7Room = apartment7Room * (7 + 2) // комнаты + кухня + коридор
+
+        totalDetectors = detectors1Room + detectors2Room + detectors3Room + detectors4Room + detectors5Room + detectors6Room + detectors7Room
+      } else {
+        // Простой режим: используем среднюю комнатность
+        const detectorsPerApartment = averageRoomsPerApartment + 2 // комнаты + кухня + коридор
+        totalDetectors = calculatedApartmentsCount * detectorsPerApartment
+      }
+
+      // Добавляем датчики для общих зон, если не используется детальный режим помещений
+      if (!useDetailedRooms) {
+        // Надземные этажи: 2 датчика на этаж, подземные: 1 датчик на этаж
+        const aboveGroundCommonDetectors = Math.ceil(aboveGroundFloors * 2)
+        const undergroundCommonDetectors = Math.ceil(undergroundFloors * 1)
+        const commonAreaDetectors = aboveGroundCommonDetectors + undergroundCommonDetectors
+        totalDetectors += commonAreaDetectors
+      }
+
+      // Проверяем соответствие нормативу по площади (СП 5.13130.2009)
+      const detectorsByArea = Math.ceil(area / adjustedDetectorCoverage)
+      totalDetectors = Math.max(totalDetectors, detectorsByArea)
     } else {
-      // Для остальных типов помещений - по площади
-      totalDetectors = Math.ceil(area / detectorCoverage)
+      // Для остальных типов помещений - по площади с учётом высоты потолков
+      totalDetectors = Math.ceil(area / adjustedDetectorCoverage)
     }
 
     // Разделение на типы датчиков по принципам безопасности
     let smokeDetectors, heatDetectors, algorithmType
     switch(buildingType) {
       // Жилые помещения
-      case 'residential_apartment':
-        // Квартиры - преимущественно дымовые для раннего обнаружения
-        // В спальнях и гостиных только дымовые, на кухне - тепловые
-        const kitchenHeatDetectors = apartmentsCount // по 1 тепловому на кухню
-        heatDetectors = kitchenHeatDetectors
-        smokeDetectors = totalDetectors - heatDetectors
+      case 'residential_apartment': {
+        if (useDetailedRooms) {
+          // Детальный режим помещений: точное разделение по типам
+          // Тепловые датчики в венткамерах, ИТП, электрощитовых, мусорных камерах
+          const techHeatDetectors = techVentilationCount + techHeatingCount + techElectricalCount
+          const wasteHeatDetectors = wasteRoomCount // мусорные камеры - тепловые из-за возможности самовозгорания
+
+          heatDetectors = techHeatDetectors + wasteHeatDetectors
+          smokeDetectors = totalDetectors - heatDetectors
+        } else {
+          // Стандартный режим: по 1 тепловому на кухню в квартире
+          const kitchenHeatDetectors = calculatedApartmentsCount // по 1 тепловому на кухню
+          heatDetectors = kitchenHeatDetectors
+          smokeDetectors = totalDetectors - heatDetectors
+        }
         algorithmType = 'B (двойное срабатывание ≤60с)'
         break
+      }
 
       // Хранение и парковка
       case 'parking_underground':
@@ -166,7 +311,8 @@ function App() {
     // Ручные извещатели (алгоритм А - одноразовое срабатывание)
     // По периметру здания и в помещениях согласно нормативам
     const perimeter = 2 * Math.sqrt(area * 2) // примерный периметр здания
-    const manualCallPoints = Math.ceil(perimeter / manualCallDistance) + Math.ceil(rooms / 4)
+    const roomsForCalculation = useDetailedRooms ? calculatedRoomsCount : rooms
+    const manualCallPoints = Math.ceil(perimeter / manualCallDistance) + Math.ceil(roomsForCalculation / 4)
 
     // Система оповещения по типам помещений (СОУЭ)
     let sounderMultiplier, soueType
@@ -287,7 +433,11 @@ function App() {
       alsLength: Math.ceil(alsLength),
       aboveGroundArea,
       undergroundArea,
-      totalArea
+      totalArea,
+      adjustedDetectorCoverage,
+      useDetailedRooms,
+      calculatedRoomsCount,
+      calculatedRoomsArea
     })
   }
 
@@ -297,15 +447,19 @@ function App() {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       minHeight: '100vh',
       margin: 0,
-      padding: '20px'
+      padding: 0,
+      width: '100vw',
+      overflowX: 'hidden'
     },
     container: {
-      maxWidth: '1400px',
-      margin: '0 auto',
+      width: '100vw',
+      maxWidth: 'none',
+      margin: 0,
       background: 'rgba(255, 255, 255, 0.95)',
-      borderRadius: '20px',
-      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-      overflow: 'hidden'
+      borderRadius: 0,
+      boxShadow: 'none',
+      overflow: 'hidden',
+      minHeight: '100vh'
     },
     header: {
       background: 'linear-gradient(45deg, #ff6b6b, #ee5a24)',
@@ -325,8 +479,8 @@ function App() {
     mainContent: {
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
-      gap: '30px',
-      padding: '30px'
+      gap: '20px',
+      padding: '10px 0'
     },
     section: {
       background: 'white',
@@ -384,8 +538,8 @@ function App() {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       color: 'white',
       borderRadius: '15px',
-      padding: '30px',
-      marginTop: '10px'
+      padding: '20px',
+      marginTop: '5px'
     },
     resultsGrid: {
       display: 'grid',
@@ -504,41 +658,395 @@ function App() {
             </div>
 
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Количество квартир</label>
-              <input
-                type="number"
-                value={apartmentsCount}
-                onChange={(e) => setApartmentsCount(Number(e.target.value))}
-                style={styles.input}
-                placeholder="Общее количество квартир в здании"
-              />
+              <label style={styles.label}>
+                <input
+                  type="checkbox"
+                  checked={useDetailedApartments}
+                  onChange={(e) => setUseDetailedApartments(e.target.checked)}
+                  style={{marginRight: '10px'}}
+                />
+                Детальный выбор квартир по комнатности
+              </label>
             </div>
 
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Количество комнат в квартире</label>
-              <select
-                value={roomsPerApartment}
-                onChange={(e) => setRoomsPerApartment(Number(e.target.value))}
-                style={styles.input}
-              >
-                <option value={1}>1-комнатная</option>
-                <option value={2}>2-комнатная</option>
-                <option value={3}>3-комнатная</option>
-                <option value={4}>4-комнатная</option>
-                <option value={5}>5-комнатная</option>
-                <option value={6}>6+ комнатная</option>
-              </select>
-            </div>
+            {!useDetailedApartments ? (
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Общее количество квартир</label>
+                <input
+                  type="number"
+                  value={apartmentsCount}
+                  onChange={(e) => setApartmentsCount(Number(e.target.value))}
+                  style={styles.input}
+                  placeholder="Общее количество квартир в здании"
+                />
+              </div>
+            ) : (
+              <>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Количество 1-комнатных квартир</label>
+                  <input
+                    type="number"
+                    value={apartment1Room}
+                    onChange={(e) => setApartment1Room(Number(e.target.value))}
+                    style={styles.input}
+                    min="0"
+                  />
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Количество 2-комнатных квартир</label>
+                  <input
+                    type="number"
+                    value={apartment2Room}
+                    onChange={(e) => setApartment2Room(Number(e.target.value))}
+                    style={styles.input}
+                    min="0"
+                  />
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Количество 3-комнатных квартир</label>
+                  <input
+                    type="number"
+                    value={apartment3Room}
+                    onChange={(e) => setApartment3Room(Number(e.target.value))}
+                    style={styles.input}
+                    min="0"
+                  />
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Количество 4-комнатных квартир</label>
+                  <input
+                    type="number"
+                    value={apartment4Room}
+                    onChange={(e) => setApartment4Room(Number(e.target.value))}
+                    style={styles.input}
+                    min="0"
+                  />
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Количество 5-комнатных квартир</label>
+                  <input
+                    type="number"
+                    value={apartment5Room}
+                    onChange={(e) => setApartment5Room(Number(e.target.value))}
+                    style={styles.input}
+                    min="0"
+                  />
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Количество 6-комнатных квартир</label>
+                  <input
+                    type="number"
+                    value={apartment6Room}
+                    onChange={(e) => setApartment6Room(Number(e.target.value))}
+                    style={styles.input}
+                    min="0"
+                  />
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Количество 7-комнатных квартир</label>
+                  <input
+                    type="number"
+                    value={apartment7Room}
+                    onChange={(e) => setApartment7Room(Number(e.target.value))}
+                    style={styles.input}
+                    min="0"
+                  />
+                </div>
+
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Общее количество квартир (рассчитано)</label>
+                  <input
+                    type="number"
+                    value={calculatedApartmentsCount}
+                    readOnly
+                    style={{...styles.input, backgroundColor: '#e9ecef', cursor: 'not-allowed'}}
+                    title="Рассчитывается автоматически как сумма всех квартир"
+                  />
+                </div>
+              </>
+            )}
 
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Количество помещений</label>
-              <input
-                type="number"
-                value={rooms}
-                onChange={(e) => setRooms(Number(e.target.value))}
-                style={styles.input}
-              />
+              <label style={styles.label}>
+                <input
+                  type="checkbox"
+                  checked={useDetailedRooms}
+                  onChange={(e) => setUseDetailedRooms(e.target.checked)}
+                  style={{marginRight: '10px'}}
+                />
+                Детальный выбор помещений по типам
+              </label>
             </div>
+
+            {useDetailedRooms ? (
+              <>
+
+                <h3 style={{...styles.sectionTitle, fontSize: '1.2em', marginBottom: '15px', borderBottom: '2px solid #27ae60', marginTop: '20px'}}>
+                  <span>🚪</span>
+                  Общие помещения
+                </h3>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Количество лестничных клеток</label>
+                    <input
+                      type="number"
+                      value={stairwellCount}
+                      onChange={(e) => setStairwellCount(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                    />
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Площадь 1 лестничной клетки (м²)</label>
+                    <input
+                      type="number"
+                      value={stairwellArea}
+                      onChange={(e) => setStairwellArea(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                      step="0.1"
+                    />
+                    {stairwellCount > 0 && stairwellArea > 0 && (
+                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                        Общая площадь лестничных клеток: {(stairwellCount * stairwellArea).toFixed(1)} м²
+                      </small>
+                    )}
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Количество лифтовых холлов</label>
+                    <input
+                      type="number"
+                      value={elevatorHallCount}
+                      onChange={(e) => setElevatorHallCount(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                    />
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Площадь 1 лифтового холла (м²)</label>
+                    <input
+                      type="number"
+                      value={elevatorHallArea}
+                      onChange={(e) => setElevatorHallArea(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                      step="0.1"
+                    />
+                    {elevatorHallCount > 0 && elevatorHallArea > 0 && (
+                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                        Общая площадь лифтовых холлов: {(elevatorHallCount * elevatorHallArea).toFixed(1)} м²
+                      </small>
+                    )}
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Количество общих коридоров</label>
+                    <input
+                      type="number"
+                      value={commonCorridorCount}
+                      onChange={(e) => setCommonCorridorCount(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                    />
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Площадь 1 общего коридора (м²)</label>
+                    <input
+                      type="number"
+                      value={commonCorridorArea}
+                      onChange={(e) => setCommonCorridorArea(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                      step="0.1"
+                    />
+                    {commonCorridorCount > 0 && commonCorridorArea > 0 && (
+                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                        Общая площадь общих коридоров: {(commonCorridorCount * commonCorridorArea).toFixed(1)} м²
+                      </small>
+                    )}
+                  </div>
+                </div>
+
+                <h3 style={{...styles.sectionTitle, fontSize: '1.2em', marginBottom: '15px', borderBottom: '2px solid #f39c12', marginTop: '20px'}}>
+                  <span>⚙️</span>
+                  Технические помещения
+                </h3>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Количество венткамер</label>
+                    <input
+                      type="number"
+                      value={techVentilationCount}
+                      onChange={(e) => setTechVentilationCount(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                    />
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Площадь 1 венткамеры (м²)</label>
+                    <input
+                      type="number"
+                      value={techVentilationArea}
+                      onChange={(e) => setTechVentilationArea(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                      step="0.1"
+                    />
+                    {techVentilationCount > 0 && techVentilationArea > 0 && (
+                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                        Общая площадь венткамер: {(techVentilationCount * techVentilationArea).toFixed(1)} м²
+                      </small>
+                    )}
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Количество электрощитовых</label>
+                    <input
+                      type="number"
+                      value={techElectricalCount}
+                      onChange={(e) => setTechElectricalCount(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                    />
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Площадь 1 электрощитовой (м²)</label>
+                    <input
+                      type="number"
+                      value={techElectricalArea}
+                      onChange={(e) => setTechElectricalArea(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                      step="0.1"
+                    />
+                    {techElectricalCount > 0 && techElectricalArea > 0 && (
+                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                        Общая площадь электрощитовых: {(techElectricalCount * techElectricalArea).toFixed(1)} м²
+                      </small>
+                    )}
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Количество тепловых пунктов (ИТП)</label>
+                    <input
+                      type="number"
+                      value={techHeatingCount}
+                      onChange={(e) => setTechHeatingCount(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                    />
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Площадь 1 теплового пункта (м²)</label>
+                    <input
+                      type="number"
+                      value={techHeatingArea}
+                      onChange={(e) => setTechHeatingArea(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                      step="0.1"
+                    />
+                    {techHeatingCount > 0 && techHeatingArea > 0 && (
+                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                        Общая площадь тепловых пунктов: {(techHeatingCount * techHeatingArea).toFixed(1)} м²
+                      </small>
+                    )}
+                  </div>
+                </div>
+
+                <h3 style={{...styles.sectionTitle, fontSize: '1.2em', marginBottom: '15px', borderBottom: '2px solid #9b59b6', marginTop: '20px'}}>
+                  <span>📦</span>
+                  Подсобные помещения
+                </h3>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Количество кладовых</label>
+                    <input
+                      type="number"
+                      value={storageCount}
+                      onChange={(e) => setStorageCount(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                    />
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Площадь 1 кладовой (м²)</label>
+                    <input
+                      type="number"
+                      value={storageArea}
+                      onChange={(e) => setStorageArea(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                      step="0.1"
+                    />
+                    {storageCount > 0 && storageArea > 0 && (
+                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                        Общая площадь кладовых: {(storageCount * storageArea).toFixed(1)} м²
+                      </small>
+                    )}
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Количество мусорных камер</label>
+                    <input
+                      type="number"
+                      value={wasteRoomCount}
+                      onChange={(e) => setWasteRoomCount(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                    />
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Площадь 1 мусорной камеры (м²)</label>
+                    <input
+                      type="number"
+                      value={wasteRoomArea}
+                      onChange={(e) => setWasteRoomArea(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                      step="0.1"
+                    />
+                    {wasteRoomCount > 0 && wasteRoomArea > 0 && (
+                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                        Общая площадь мусорных камер: {(wasteRoomCount * wasteRoomArea).toFixed(1)} м²
+                      </small>
+                    )}
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Количество парковочных мест</label>
+                    <input
+                      type="number"
+                      value={parkingCount}
+                      onChange={(e) => setParkingCount(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                    />
+                  </div>
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Площадь 1 парковочного места (м²)</label>
+                    <input
+                      type="number"
+                      value={parkingArea}
+                      onChange={(e) => setParkingArea(Number(e.target.value))}
+                      style={styles.input}
+                      min="0"
+                      step="0.1"
+                    />
+                    {parkingCount > 0 && parkingArea > 0 && (
+                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                        Общая площадь парковки: {(parkingCount * parkingArea).toFixed(1)} м²
+                      </small>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Количество помещений</label>
+                <input
+                  type="number"
+                  value={rooms}
+                  onChange={(e) => setRooms(Number(e.target.value))}
+                  style={styles.input}
+                />
+              </div>
+            )}
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>Высота потолков (м)</label>
@@ -601,10 +1109,15 @@ function App() {
             </h2>
 
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Площадь покрытия 1 датчика (м²)</label>
-              <input 
-                type="number" 
-                value={detectorCoverage} 
+              <label style={styles.label}>
+                Площадь покрытия 1 датчика (м²)
+                <small style={{display: 'block', fontWeight: 'normal', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
+                  Базовая площадь для расчета. Автоматически корректируется по СП 5.13130.2009
+                </small>
+              </label>
+              <input
+                type="number"
+                value={detectorCoverage}
                 onChange={(e) => setDetectorCoverage(Number(e.target.value))}
                 style={styles.input}
               />
@@ -770,17 +1283,60 @@ function App() {
                     <span style={styles.resultValue}>{results.totalArea} м²</span>
                   </div>
                   <div style={styles.resultItem}>
-                    <span>Количество квартир:</span>
-                    <span style={styles.resultValue}>{apartmentsCount} шт.</span>
+                    <span>Общее количество квартир:</span>
+                    <span style={styles.resultValue}>{calculatedApartmentsCount} шт.</span>
                   </div>
-                  <div style={styles.resultItem}>
-                    <span>Комнатность квартир:</span>
-                    <span style={styles.resultValue}>{roomsPerApartment === 6 ? '6+' : roomsPerApartment}-комнатные</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Общее количество комнат:</span>
-                    <span style={styles.resultValue}>{apartmentsCount * roomsPerApartment} шт.</span>
-                  </div>
+                  {useDetailedApartments ? (
+                    <>
+                      {apartment1Room > 0 && <div style={styles.resultItem}>
+                        <span>1-комнатные квартиры:</span>
+                        <span style={styles.resultValue}>{apartment1Room} шт. ({apartment1Room} комнат)</span>
+                      </div>}
+                      {apartment2Room > 0 && <div style={styles.resultItem}>
+                        <span>2-комнатные квартиры:</span>
+                        <span style={styles.resultValue}>{apartment2Room} шт. ({apartment2Room * 2} комнат)</span>
+                      </div>}
+                      {apartment3Room > 0 && <div style={styles.resultItem}>
+                        <span>3-комнатные квартиры:</span>
+                        <span style={styles.resultValue}>{apartment3Room} шт. ({apartment3Room * 3} комнат)</span>
+                      </div>}
+                      {apartment4Room > 0 && <div style={styles.resultItem}>
+                        <span>4-комнатные квартиры:</span>
+                        <span style={styles.resultValue}>{apartment4Room} шт. ({apartment4Room * 4} комнат)</span>
+                      </div>}
+                      {apartment5Room > 0 && <div style={styles.resultItem}>
+                        <span>5-комнатные квартиры:</span>
+                        <span style={styles.resultValue}>{apartment5Room} шт. ({apartment5Room * 5} комнат)</span>
+                      </div>}
+                      {apartment6Room > 0 && <div style={styles.resultItem}>
+                        <span>6-комнатные квартиры:</span>
+                        <span style={styles.resultValue}>{apartment6Room} шт. ({apartment6Room * 6} комнат)</span>
+                      </div>}
+                      {apartment7Room > 0 && <div style={styles.resultItem}>
+                        <span>7-комнатные квартиры:</span>
+                        <span style={styles.resultValue}>{apartment7Room} шт. ({apartment7Room * 7} комнат)</span>
+                      </div>}
+                      <div style={styles.resultItem}>
+                        <span>Общее количество комнат:</span>
+                        <span style={styles.resultValue}>{apartment1Room * 1 + apartment2Room * 2 + apartment3Room * 3 + apartment4Room * 4 + apartment5Room * 5 + apartment6Room * 6 + apartment7Room * 7} шт.</span>
+                      </div>
+                      <div style={styles.resultItem}>
+                        <span>Средняя комнатность:</span>
+                        <span style={styles.resultValue}>{averageRoomsPerApartment.toFixed(1)} комнат/квартира</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={styles.resultItem}>
+                        <span>Средняя комнатность квартир:</span>
+                        <span style={styles.resultValue}>{averageRoomsPerApartment}-комнатные</span>
+                      </div>
+                      <div style={styles.resultItem}>
+                        <span>Общее количество комнат:</span>
+                        <span style={styles.resultValue}>{Math.ceil(calculatedApartmentsCount * averageRoomsPerApartment)} шт.</span>
+                      </div>
+                    </>
+                  )}
                   <div style={styles.resultItem}>
                     <span>Этажи надземной части:</span>
                     <span style={styles.resultValue}>{aboveGroundFloors} этажей</span>
@@ -793,7 +1349,81 @@ function App() {
                     <span>Общее количество этажей:</span>
                     <span style={styles.resultValue}>{totalFloors} этажей</span>
                   </div>
+                  {useDetailedRooms && (
+                    <>
+                      <div style={styles.resultItem}>
+                        <span>Общее количество помещений (детально):</span>
+                        <span style={styles.resultValue}>{results.calculatedRoomsCount} шт.</span>
+                      </div>
+                      {results.calculatedRoomsArea > 0 && (
+                        <div style={styles.resultItem}>
+                          <span>Общая площадь помещений (детально):</span>
+                          <span style={styles.resultValue}>{results.calculatedRoomsArea.toFixed(1)} м²</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
+
+                {useDetailedRooms && (
+                  <div style={styles.resultCard}>
+                    <h3 style={styles.resultCardTitle}>🏠 Детализация по типам помещений</h3>
+
+                    {(stairwellCount > 0 || elevatorHallCount > 0 || commonCorridorCount > 0) && (
+                      <div style={{marginBottom: '15px'}}>
+                        <strong style={{color: '#27ae60', fontSize: '1.1em'}}>Общие помещения:</strong>
+                        {stairwellCount > 0 && <div style={styles.resultItem}>
+                          <span>Лестничные клетки:</span>
+                          <span style={styles.resultValue}>{stairwellCount} шт. ({stairwellArea > 0 ? `${stairwellArea}м² × ${stairwellCount} = ${(stairwellCount * stairwellArea).toFixed(1)}м²` : 'площадь не указана'})</span>
+                        </div>}
+                        {elevatorHallCount > 0 && <div style={styles.resultItem}>
+                          <span>Лифтовые холлы:</span>
+                          <span style={styles.resultValue}>{elevatorHallCount} шт. ({elevatorHallArea > 0 ? `${elevatorHallArea}м² × ${elevatorHallCount} = ${(elevatorHallCount * elevatorHallArea).toFixed(1)}м²` : 'площадь не указана'})</span>
+                        </div>}
+                        {commonCorridorCount > 0 && <div style={styles.resultItem}>
+                          <span>Общие коридоры:</span>
+                          <span style={styles.resultValue}>{commonCorridorCount} шт. ({commonCorridorArea > 0 ? `${commonCorridorArea}м² × ${commonCorridorCount} = ${(commonCorridorCount * commonCorridorArea).toFixed(1)}м²` : 'площадь не указана'})</span>
+                        </div>}
+                      </div>
+                    )}
+
+                    {(techVentilationCount > 0 || techElectricalCount > 0 || techHeatingCount > 0) && (
+                      <div style={{marginBottom: '15px'}}>
+                        <strong style={{color: '#f39c12', fontSize: '1.1em'}}>Технические помещения:</strong>
+                        {techVentilationCount > 0 && <div style={styles.resultItem}>
+                          <span>Венткамеры (тепловые датчики):</span>
+                          <span style={styles.resultValue}>{techVentilationCount} шт. ({techVentilationArea > 0 ? `${techVentilationArea}м² × ${techVentilationCount} = ${(techVentilationCount * techVentilationArea).toFixed(1)}м²` : 'площадь не указана'})</span>
+                        </div>}
+                        {techElectricalCount > 0 && <div style={styles.resultItem}>
+                          <span>Электрощитовые (тепловые датчики):</span>
+                          <span style={styles.resultValue}>{techElectricalCount} шт. ({techElectricalArea > 0 ? `${techElectricalArea}м² × ${techElectricalCount} = ${(techElectricalCount * techElectricalArea).toFixed(1)}м²` : 'площадь не указана'})</span>
+                        </div>}
+                        {techHeatingCount > 0 && <div style={styles.resultItem}>
+                          <span>Тепловые пункты ИТП (тепловые датчики):</span>
+                          <span style={styles.resultValue}>{techHeatingCount} шт. ({techHeatingArea > 0 ? `${techHeatingArea}м² × ${techHeatingCount} = ${(techHeatingCount * techHeatingArea).toFixed(1)}м²` : 'площадь не указана'})</span>
+                        </div>}
+                      </div>
+                    )}
+
+                    {(storageCount > 0 || wasteRoomCount > 0 || parkingCount > 0) && (
+                      <div style={{marginBottom: '15px'}}>
+                        <strong style={{color: '#9b59b6', fontSize: '1.1em'}}>Подсобные помещения:</strong>
+                        {storageCount > 0 && <div style={styles.resultItem}>
+                          <span>Кладовые:</span>
+                          <span style={styles.resultValue}>{storageCount} шт. ({storageArea > 0 ? `${storageArea}м² × ${storageCount} = ${(storageCount * storageArea).toFixed(1)}м²` : 'площадь не указана'})</span>
+                        </div>}
+                        {wasteRoomCount > 0 && <div style={styles.resultItem}>
+                          <span>Мусорные камеры (тепловые датчики):</span>
+                          <span style={styles.resultValue}>{wasteRoomCount} шт. ({wasteRoomArea > 0 ? `${wasteRoomArea}м² × ${wasteRoomCount} = ${(wasteRoomCount * wasteRoomArea).toFixed(1)}м²` : 'площадь не указана'})</span>
+                        </div>}
+                        {parkingCount > 0 && <div style={styles.resultItem}>
+                          <span>Парковочные места:</span>
+                          <span style={styles.resultValue}>{parkingCount} шт. ({parkingArea > 0 ? `${parkingArea}м² × ${parkingCount} = ${(parkingCount * parkingArea).toFixed(1)}м²` : 'площадь не указана'})</span>
+                        </div>}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div style={styles.resultCard}>
                   <h3 style={styles.resultCardTitle}>📊 Параметры системы R3-РУБЕЖ-2ОП</h3>
@@ -808,6 +1438,10 @@ function App() {
                   <div style={styles.resultItem}>
                     <span>Количество АЛС на прибор:</span>
                     <span style={styles.resultValue}>2 линии × 3000м</span>
+                  </div>
+                  <div style={styles.resultItem}>
+                    <span>Площадь покрытия 1 датчика (расч.):</span>
+                    <span style={styles.resultValue}>{results.adjustedDetectorCoverage?.toFixed(1) || detectorCoverage} м²</span>
                   </div>
                 </div>
 
@@ -824,6 +1458,31 @@ function App() {
                   <div style={styles.resultItem}>
                     <span>Уровень звукового давления:</span>
                     <span style={styles.resultValue}>75-120 дБА</span>
+                  </div>
+                </div>
+
+                <div style={styles.resultCard}>
+                  <h3 style={styles.resultCardTitle}>📖 Нормативная база (СП 5.13130.2009)</h3>
+                  <div style={styles.resultItem}>
+                    <span>Максимальная площадь на 1 дым. извещатель:</span>
+                    <span style={styles.resultValue}>85 м² (при h ≤ 3.5м)</span>
+                  </div>
+                  <div style={styles.resultItem}>
+                    <span>Расстояние между извещателями:</span>
+                    <span style={styles.resultValue}>≤ 9 м</span>
+                  </div>
+                  <div style={styles.resultItem}>
+                    <span>Расстояние до стен:</span>
+                    <span style={styles.resultValue}>≤ 4.5 м</span>
+                  </div>
+                  <div style={styles.resultItem}>
+                    <span>Корректировка по высоте:</span>
+                    <span style={styles.resultValue}>
+                      {height > 3.5 ?
+                        `Применена (${height}м > 3.5м)` :
+                        'Не требуется'
+                      }
+                    </span>
                   </div>
                 </div>
               </div>
