@@ -3,80 +3,347 @@ import './App.css'
 
 function App() {
   // Основные состояния здания
-  const [aboveGroundArea, setAboveGroundArea] = useState(800) // Надземная часть
-  const [undergroundArea, setUndergroundArea] = useState(200) // Подземная парковка
-  const [aboveGroundFloors, setAboveGroundFloors] = useState(3) // Этажи надземной части
-  const [undergroundFloors, setUndergroundFloors] = useState(1) // Этажи подземной части
-  const [apartmentsCount, setApartmentsCount] = useState(50) // Общее количество квартир
+  const [aboveGroundArea, setAboveGroundArea] = useState(5000) // Надземная часть
+  const [undergroundArea, setUndergroundArea] = useState(0) // Подземная автостоянка
+  const [aboveGroundFloors, setAboveGroundFloors] = useState(10) // Этажность
+  const [undergroundFloors, setUndergroundFloors] = useState(0) // Подземные этажи
+  const [apartmentsCount, setApartmentsCount] = useState(100) // Общее количество квартир
 
   // Детализированный выбор квартир по комнатности
-  const [apartment1Room, setApartment1Room] = useState(10) // Количество 1-комнатных квартир
-  const [apartment2Room, setApartment2Room] = useState(20) // Количество 2-комнатных квартир
-  const [apartment3Room, setApartment3Room] = useState(15) // Количество 3-комнатных квартир
-  const [apartment4Room, setApartment4Room] = useState(3) // Количество 4-комнатных квартир
-  const [apartment5Room, setApartment5Room] = useState(2) // Количество 5-комнатных квартир
-  const [apartment6Room, setApartment6Room] = useState(0) // Количество 6-комнатных квартир
-  const [apartment7Room, setApartment7Room] = useState(0) // Количество 7-комнатных квартир
+  const [apartment1Room, setApartment1Room] = useState(25) // 1-комнатные
+  const [apartment2Room, setApartment2Room] = useState(50) // 2-комнатные
+  const [apartment3Room, setApartment3Room] = useState(20) // 3-комнатные
+  const [apartment4Room, setApartment4Room] = useState(5) // 4-комнатные
+  const [apartment5Room, setApartment5Room] = useState(0) // 5-комнатные
+  const [apartment6Room, setApartment6Room] = useState(0) // 6-комнатные
+  const [apartment7Room, setApartment7Room] = useState(0) // 7-комнатные
   const [useDetailedApartments, setUseDetailedApartments] = useState(false) // Переключатель режима
 
   // Детальный выбор помещений по типам
   const [useDetailedRooms, setUseDetailedRooms] = useState(false) // Переключатель детального режима помещений
 
-  // Общие помещения
-  const [stairwellCount, setStairwellCount] = useState(0)
-  const [stairwellArea, setStairwellArea] = useState(0)
-  const [elevatorHallCount, setElevatorHallCount] = useState(0)
-  const [elevatorHallArea, setElevatorHallArea] = useState(0)
-  const [commonCorridorCount, setCommonCorridorCount] = useState(0)
-  const [commonCorridorArea, setCommonCorridorArea] = useState(0)
+  // Общие помещения (расчет для 10-секционного комплекса)
+  const [stairwellCount, setStairwellCount] = useState(20) // 2 лестницы на секцию
+  const [stairwellArea, setStairwellArea] = useState(15) // Типовая площадь лестничной клетки
+  const [elevatorHallCount, setElevatorHallCount] = useState(10) // По 1 лифтовому холлу на секцию
+  const [elevatorHallArea, setElevatorHallArea] = useState(25) // Типовая площадь лифтового холла
+  const [commonCorridorCount, setCommonCorridorCount] = useState(35) // Коридоры на каждом этаже
+  const [commonCorridorArea, setCommonCorridorArea] = useState(120) // Средняя площадь коридора
 
-  // Технические помещения
-  const [techVentilationCount, setTechVentilationCount] = useState(0)
-  const [techVentilationArea, setTechVentilationArea] = useState(0)
-  const [techElectricalCount, setTechElectricalCount] = useState(0)
-  const [techElectricalArea, setTechElectricalArea] = useState(0)
-  const [techHeatingCount, setTechHeatingCount] = useState(0)
-  const [techHeatingArea, setTechHeatingArea] = useState(0)
-  const [techPumpingCount, setTechPumpingCount] = useState(0)
-  const [techPumpingArea, setTechPumpingArea] = useState(0)
-  const [techTransformerCount, setTechTransformerCount] = useState(0)
-  const [techTransformerArea, setTechTransformerArea] = useState(0)
-  const [techTelecomCount, setTechTelecomCount] = useState(0)
-  const [techTelecomArea, setTechTelecomArea] = useState(0)
-  const [techWaterCount, setTechWaterCount] = useState(0)
-  const [techWaterArea, setTechWaterArea] = useState(0)
-  const [techFloorCount, setTechFloorCount] = useState(0)
-  const [techFloorArea, setTechFloorArea] = useState(0)
+  // Технические помещения (по ТЗ многосекционного комплекса)
+  const [techVentilationCount, setTechVentilationCount] = useState(15) // Венткамеры для каждой секции + общие
+  const [techVentilationArea, setTechVentilationArea] = useState(35) // Средняя площадь венткамеры
+  const [techElectricalCount, setTechElectricalCount] = useState(12) // Электрощитовые секций
+  const [techElectricalArea, setTechElectricalArea] = useState(20) // Площадь электрощитовой
+  const [techHeatingCount, setTechHeatingCount] = useState(8) // ИТП для секций
+  const [techHeatingArea, setTechHeatingArea] = useState(50) // Площадь теплового пункта
+  const [techPumpingCount, setTechPumpingCount] = useState(4) // Насосные станции
+  const [techPumpingArea, setTechPumpingArea] = useState(30) // Площадь насосной
+  const [techTransformerCount, setTechTransformerCount] = useState(2) // Трансформаторные подстанции
+  const [techTransformerArea, setTechTransformerArea] = useState(80) // Площадь трансформаторной
+  const [techTelecomCount, setTechTelecomCount] = useState(10) // Слаботочные помещения
+  const [techTelecomArea, setTechTelecomArea] = useState(15) // Площадь слаботочной
+  const [techWaterCount, setTechWaterCount] = useState(6) // Водомерные узлы
+  const [techWaterArea, setTechWaterArea] = useState(25) // Площадь водомерного узла
+  const [techFloorCount, setTechFloorCount] = useState(3) // Технические этажи
+  const [techFloorArea, setTechFloorArea] = useState(500) // Площадь техэтажа
 
-  // Хранение и парковка
-  const [storageCount, setStorageCount] = useState(0)
-  const [storageArea, setStorageArea] = useState(0)
-  const [wasteRoomCount, setWasteRoomCount] = useState(0)
-  const [wasteRoomArea, setWasteRoomArea] = useState(0)
-  const [parkingUndergroundCount, setParkingUndergroundCount] = useState(0)
-  const [parkingUndergroundArea, setParkingUndergroundArea] = useState(0)
+  // Хранение и парковка (по ТЗ с подземной автостоянкой)
+  const [storageCount, setStorageCount] = useState(800) // Кладовые для жильцов (по 1 на квартиру)
+  const [storageArea, setStorageArea] = useState(4) // Средняя площадь кладовой
+  const [wasteRoomCount, setWasteRoomCount] = useState(11) // Мусорные камеры (центральная + в секциях)
+  const [wasteRoomArea, setWasteRoomArea] = useState(12) // Площадь мусорной камеры
+  const [parkingUndergroundCount, setParkingUndergroundCount] = useState(1) // Общая подземная автостоянка
+  const [parkingUndergroundArea, setParkingUndergroundArea] = useState(8000) // Площадь подземной парковки
 
-  // Охрана и эксплуатация
-  const [securityPostCount, setSecurityPostCount] = useState(0)
-  const [securityPostArea, setSecurityPostArea] = useState(0)
-  const [staffRoomCount, setStaffRoomCount] = useState(0)
-  const [staffRoomArea, setStaffRoomArea] = useState(0)
+  // Охрана и эксплуатация (для крупного ЖК)
+  const [securityPostCount, setSecurityPostCount] = useState(6) // Посты охраны в вестибюлях
+  const [securityPostArea, setSecurityPostArea] = useState(8) // Площадь поста охраны
+  const [staffRoomCount, setStaffRoomCount] = useState(4) // Комнаты персонала/консьержей
+  const [staffRoomArea, setStaffRoomArea] = useState(12) // Площадь комнаты персонала
 
   // Настройки системы АПС
-  const [rooms, setRooms] = useState(25)
-  const [height, setHeight] = useState(3.0)
+  const [rooms, setRooms] = useState(50) // Общие помещения (коридоры, лестницы, технические)
+  const [height, setHeight] = useState(3.0) // Высота потолков
   const [buildingType, setBuildingType] = useState('residential_apartment')
-  const [detectorCoverage, setDetectorCoverage] = useState(25)
-  const [manualCallDistance, setManualCallDistance] = useState(50)
+  const [detectorCoverage, setDetectorCoverage] = useState(85) // Согласно СП 5.13130.2009
+  const [manualCallDistance, setManualCallDistance] = useState(50) // Норматив
   const [sounderCoverage, setSounderCoverage] = useState(15)
-  const [cableReserve, setCableReserve] = useState(15)
-  const [zoneSize, setZoneSize] = useState(500)
+  const [cableReserve, setCableReserve] = useState(15) // Стандартный запас кабеля
+  const [zoneSize, setZoneSize] = useState(300) // ЗКПС стандартный размер
 
   // Результаты и состояния интерфейса
   const [results, setResults] = useState(null)
   const [showApartmentsModal, setShowApartmentsModal] = useState(false)
   const [showRoomsModal, setShowRoomsModal] = useState(false)
+  const [showAPSSettingsModal, setShowAPSSettingsModal] = useState(false)
   const [activeSection, setActiveSection] = useState('calculator') // Навигация портала
+
+  // Структура конкретных моделей оборудования по типам
+  const equipmentModels = {
+    detectors: {
+      name: '🔍 Пожарные извещатели',
+      models: {
+        // Дымовые извещатели
+        'ip212-64-r3': 'ИП 212-64-R3 W2.02 Rubezh (дымовой адресный)',
+        'ip212-141': 'ИП 212-141 (дымовой неадресный)',
+        'ip212-50m2': 'ИП 212-50М2 (дымовой радиоканальный)',
+        'ip212-45': 'ИП 212-45 "Пожтехника" (дымовой оптико-электронный)',
+        'ip212-87': 'ИП 212-87 "Аргус-Спектр" (дымовой адресный)',
+        // Тепловые извещатели
+        'ip101-1a-r3': 'ИП 101-1А-R3 Rubezh (тепловой адресный)',
+        'ip101-10': 'ИП 101-10 (тепловой неадресный)',
+        'ip101-23': 'ИП 101-23-А1R "Аргус-Спектр" (тепловой адресный)',
+        'ip101-1a': 'ИП 101-1А "Пожтехника" (тепловой максимальный)',
+        // Комбинированные извещатели
+        'ip212-50m': 'ИП 212-50М "Болид" (дымовой+тепловой)',
+        'ip212-142': 'ИП 212-142 (дымовой+тепловой неадресный)'
+      }
+    },
+    controlPanels: {
+      name: '🖥️ Приборы управления',
+      models: {
+        // ППКОП серии Рубеж
+        'rubezh-2op': 'ППКОП 011249-2-1 "Рубеж-2ОП" прот.R3',
+        'rubezh-aars': 'ППКОП "Рубеж-ААРС" (адресно-аналоговый)',
+        'rubezh-op-plus': 'ППКОП "Рубеж-ОП-ПЛЮС" (расширенная версия)',
+        // Болид серия
+        'bolid-c2000': 'С2000-КДЛ (контроллер двухпроводной линии)',
+        'bolid-c2000-4': 'С2000-4 (прибор приемно-контрольный)',
+        'bolid-c2000-m': 'С2000-М (контроллер управления)',
+        // Аргус-Спектр
+        'argus-as': 'AS-03 "Аргус-Спектр" (адресная система)',
+        'argus-as-08': 'AS-08 "Аргус-Спектр" (8 шлейфов)',
+        // Релейные модули
+        'rm-1-r3': 'РМ-1-R3 (релейный модуль 1 канал)',
+        'rm-4-r3': 'РМ-4-R3 (релейный модуль 4 канала)',
+        'rm-8-r3': 'РМ-8-R3 (релейный модуль 8 каналов)',
+        // Модули расширения
+        'mio-1-r3': 'МИО-1-R3 (модуль ввода-вывода)',
+        'mi-4-r3': 'МИ-4-R3 (модуль индикации)',
+        'mu-4-r3': 'МУ-4-R3 (модуль управления)'
+      }
+    },
+    manualCallPoints: {
+      name: '🚨 Ручные извещатели',
+      models: {
+        // Адресные ИПР
+        'ipr513-3am-r3': 'ИПР 513-3АМ-R3 Rubezh (адресный)',
+        'ipr513-10a': 'ИПР 513-10А "Аргус-Спектр" (адресный)',
+        'ipr513-3a': 'ИПР 513-3А "Болид" (адресный)',
+        // Неадресные ИПР
+        'ipr513-3m': 'ИПР 513-3М (неадресный)',
+        'ipr513-1m': 'ИПР 513-1М (неадресный стандартный)',
+        'ipr513-2m': 'ИПР 513-2М (неадресный с световой индикацией)',
+        // Специальные ИПР
+        'ipr-ex': 'ИПР-Ex (взрывозащищенный)',
+        'ipr513-10': 'ИПР 513-10 (влагозащищенный IP65)',
+        'ipr513-11': 'ИПР 513-11 (морозостойкий до -40°C)',
+        'ipr513-marine': 'ИПР 513-МР (морского исполнения)'
+      }
+    },
+    sounders: {
+      name: '📢 Система оповещения',
+      models: {
+        // Адресные оповещатели
+        'opop124-r3': 'ОПОП 124-R3 (светозвуковой адресный)',
+        'opop125-r3': 'ОПОП 125-R3 (речевой адресный)',
+        'mayak-12-r3': 'МАЯК-12-R3 (световой адресный)',
+        // Световые оповещатели
+        'mayak-24-st': 'МАЯК-24-СТ (световой стробоскопический)',
+        'mayak-12-k': 'МАЯК-12-К (световой проблесковый)',
+        'mayak-220': 'МАЯК-220 (световой сетевой)',
+        'mayak-24-z': 'МАЯК-24-З (зуммер со световой индикацией)',
+        // Звуковые оповещатели
+        'ton-3': 'ТОН-3 (звуковой сирена)',
+        'revun': 'РЕВУН (звуковой модулированный)',
+        'signal-20': 'СИГНАЛ-20 (звуковой громкоговоритель)',
+        'gong': 'ГОНГ (звуковой традиционный)',
+        // Речевые оповещатели
+        'opop-1': 'ОПОП-1 (речевой оповещатель)',
+        'rec-1': 'РЕЧ-1 (речевой блок управления)',
+        'micro-30': 'МИКРО-30 (громкоговоритель речевой)',
+        // Комбинированные
+        'soue-combo': 'СОУЭ-КОМБО (свето-звуко-речевой)',
+        'alarm-universal': 'СИГНАЛ-УНИВЕРСАЛ (настраиваемый тип сигнала)'
+      }
+    },
+    powerSupplies: {
+      name: '🔌 Источники питания',
+      models: {
+        // Источники питания Рубеж
+        'ivepr-24-r3': 'ИВЭПР 24/2,5 RS-R3 Rubezh (источник питания)',
+        'bip-12-0.5': 'БИП-12-0,5 (блок питания 12В 0,5А)',
+        'bip-24-1': 'БИП-24-1 (блок питания 24В 1А)',
+        'bip-24-2': 'БИП-24-2 (блок питания 24В 2А)',
+        'bip-24-5': 'БИП-24-5 (блок питания 24В 5А)',
+        // Источники питания Болид
+        'rip-12-rs': 'РИП-12 исп.01 (источник питания резервированный)',
+        'rip-24-rs': 'РИП-24 исп.01 (источник питания 24В)',
+        'ups-s24-0.5': 'ИБП-С24-0,5 (источник бесперебойного питания)',
+        // Аккумуляторы
+        'ups-battery-7ah': 'Аккумулятор Delta DTM 12012 (12В 1.2Ач)',
+        'ups-battery-17ah': 'Аккумулятор Delta DTM 12017 (12В 1.7Ач)',
+        'ups-battery-7ah-big': 'Аккумулятор Delta DTM 1207 (12В 7Ач)',
+        'ups-battery-17ah-big': 'Аккумулятор Delta DTM 1217 (12В 17Ач)',
+        'ups-battery-40ah': 'Аккумулятор Delta GEL 12-40 (12В 40Ач)',
+        // Преобразователи
+        'dc12-24': 'ПН 12/24-1 (преобразователь напряжения)',
+        'dc24-12': 'ПН 24/12-2 (преобразователь обратный)'
+      }
+    },
+    cables: {
+      name: '🔗 Кабельная продукция',
+      models: {
+        // АЛС кабели (адресные линии связи)
+        'ksrepng-frhf': 'КСРЭПнг(А)-FRHF 1×2×0.97мм² (АЛС кабель)',
+        'ksrepng-frhf-08': 'КСРЭПнг(А)-FRHF 1×2×0.8мм² (АЛС облегченный)',
+        'ksrepng-frhf-12': 'КСРЭПнг(А)-FRHF 1×2×1.2мм² (АЛС усиленный)',
+        // Силовые кабели
+        'kprpng-frhf': 'КПРПГнг(А)-FRHF 3×1.5мм² (силовой кабель)',
+        'vvgng-ls-3x15': 'ВВГнг-LS 3×1.5мм² (питающий кабель)',
+        'vvgng-ls-3x25': 'ВВГнг-LS 3×2.5мм² (питающий усиленный)',
+        'vvgng-ls-5x25': 'ВВГнг-LS 5×2.5мм² (трехфазный с заземлением)',
+        // Кабели оповещения (СОУЭ)
+        'kpsng-frhf': 'КПСнг(А)-FRHF 1×2×1.5мм² (кабель оповещения)',
+        'kpsng-frhf-075': 'КПСнг(А)-FRHF 1×2×0.75мм² (оповещение легкий)',
+        'kpsng-frhf-4x15': 'КПСнг(А)-FRHF 4×1.5мм² (многоканальное оповещение)',
+        // Витые пары и слаботочные
+        'j-y-st-y-2x2x08': 'J-Y(St)Y 2×2×0.8мм² (витая пара экранированная)',
+        'utp-cat5e': 'UTP Cat.5e 4×2×0.5мм² (витая пара стандартная)',
+        'ftp-cat6': 'FTP Cat.6 4×2×0.57мм² (витая пара экранированная)',
+        // Коаксиальные кабели
+        'rg6-frhf': 'RG-6нг(А)-FRHF (коаксиальный 75 Ом)',
+        'rg11-frhf': 'RG-11нг(А)-FRHF (коаксиальный усиленный)',
+        // Оптоволоконные кабели
+        'ok-frhf-4': 'ОК-НРСЛТнг(А)-FRHF 4ОВ (оптоволокно 4 жилы)',
+        'ok-frhf-8': 'ОК-НРСЛТнг(А)-FRHF 8ОВ (оптоволокно 8 жил)'
+      }
+    },
+    mountingMaterials: {
+      name: '🔧 Монтажные материалы',
+      models: {
+        // Гофротрубы и каналы
+        'conduit-pvc-16': 'Труба гофрированная ПВХ d16мм (легкая серия)',
+        'conduit-pvc-20': 'Труба гофрированная ПВХ d20мм (стандартная)',
+        'conduit-pvc-25': 'Труба гофрированная ПВХ d25мм (усиленная)',
+        'conduit-pvc-32': 'Труба гофрированная ПВХ d32мм (тяжелая серия)',
+        'cable-channel-25x16': 'Кабель-канал 25×16мм (пластиковый)',
+        'cable-channel-40x25': 'Кабель-канал 40×25мм (усиленный)',
+        'cable-channel-60x40': 'Кабель-канал 60×40мм (магистральный)',
+        // Крепежные элементы для труб
+        'bracket-smo-16-20': 'Скоба металлическая СМО 16-20 (для d16-20мм)',
+        'bracket-smo-19-26': 'Скоба металлическая СМО 19-26 (для d20-25мм)',
+        'bracket-smo-25-32': 'Скоба металлическая СМО 25-32 (для d25-32мм)',
+        'bracket-plastic-20': 'Скоба пластиковая d20мм (быстрый монтаж)',
+        'bracket-plastic-25': 'Скоба пластиковая d25мм (усиленная)',
+        // Анкерные болты и дюбели
+        'anchor-6x60': 'Анкер-клин 6×60мм металлический (для бетона)',
+        'anchor-8x80': 'Анкер-клин 8×80мм усиленный (для тяжелых нагрузок)',
+        'anchor-10x100': 'Анкер-клин 10×100мм сверхпрочный',
+        'dowel-6x40': 'Дюбель пластиковый 6×40мм (для кирпича)',
+        'dowel-8x50': 'Дюбель пластиковый 8×50мм (универсальный)',
+        'dowel-nail-6x60': 'Дюбель-гвоздь 6×60мм (быстрый монтаж)',
+        // Монтажные коробки и боксы
+        'junction-box': 'Коробка монтажная УК-2П (стандартная)',
+        'junction-box-3p': 'Коробка монтажная УК-3П (увеличенная)',
+        'junction-box-ip65': 'Коробка монтажная IP65 (влагозащищенная)',
+        'distribution-box-12': 'Бокс распределительный на 12 модулей',
+        'distribution-box-24': 'Бокс распределительный на 24 модуля',
+        'wall-box-detector': 'Коробка настенная для извещателей',
+        // Стяжки и организаторы кабелей
+        'cable-ties': 'Стяжки кабельные 4.8×300мм (стандартные)',
+        'cable-ties-heavy': 'Стяжки кабельные 7.6×400мм (усиленные)',
+        'cable-ties-releasable': 'Стяжки кабельные многоразовые',
+        'spiral-wrap-10': 'Спиральная обмотка d10мм (защита кабелей)',
+        'spiral-wrap-15': 'Спиральная обмотка d15мм (для пучков)',
+        'cable-holder-adhesive': 'Держатель кабеля самоклеящийся',
+        // Маркировка и идентификация
+        'cable-marker-set': 'Маркеры кабельные самоклеящиеся (комплект)',
+        'label-printer-tape': 'Лента для принтера этикеток (12мм)',
+        'identification-sleeve': 'Кабельные муфты маркировочные',
+        'warning-tape': 'Лента сигнальная «КАБЕЛЬ» (для укладки)',
+        // Изоляционные и защитные материалы
+        'insulation-tape': 'Изолента ПВХ черная 19мм×20м',
+        'heat-shrink-tube': 'Термоусадочная трубка набор (разные диаметры)',
+        'cable-protection-sleeve': 'Защитная оплетка кабеля самозакрывающаяся',
+        'fireproof-mastic': 'Мастика огнезащитная для кабельных проходок',
+        'fireproof-pillow': 'Подушки огнезащитные для кабельных каналов'
+      }
+    },
+    additionalEquipment: {
+      name: '🔬 Дополнительное оборудование',
+      models: {
+        // Изоляторы и согласующие устройства
+        'isolator-iz-1b-r3': 'Изолятор шлейфа ИЗ-1Б-R3 (автоматическое восстановление)',
+        'isolator-iz-2b-r3': 'Изолятор шлейфа ИЗ-2Б-R3 (двойной)',
+        'terminator-r3': 'Терминатор R3 (оконечное сопротивление АЛС)',
+        'repeater-r3': 'Повторитель R3 (усиление сигнала АЛС)',
+        // Адресные метки и модули
+        'addressable-mark-am1-r3': 'Метка адресная АМ-1-R3 (контроль целостности)',
+        'addressable-mark-am2-r3': 'Метка адресная АМ-2-R3 (с индикацией)',
+        'input-module-vm-r3': 'Модуль ввода ВМ-R3 (контроль сухих контактов)',
+        'output-module-um-r3': 'Модуль управления УМ-R3 (реле выходы)',
+        // GSM и сетевые модули
+        'gsm-module-r3': 'GSM-модуль R3 (передача на пульт охраны)',
+        'ethernet-module-r3': 'Ethernet-модуль R3 (сетевое подключение)',
+        'radio-module-r3': 'Радио-модуль R3 (беспроводная связь)',
+        'wifi-module-r3': 'WiFi-модуль R3 (беспроводной интернет)',
+        // Пульты управления и индикации
+        'control-panel-pdu-r3': 'Пульт дистанционного управления ПДУ-R3',
+        'indicator-panel-pi-r3': 'Пульт индикации ПИ-R3 (графический)',
+        'mimic-panel-large': 'Мнемосхема объекта (большая настенная)',
+        'led-indicator-matrix': 'Светодиодная матрица индикации зон',
+        // Системы передачи извещений
+        'radio-channel-r3': 'Радиоканал R3 (передача на 40км)',
+        'optic-channel-r3': 'Оптический канал R3 (по оптоволокну)',
+        'pstn-communicator': 'Коммуникатор PSTN (по телефонной линии)',
+        'ip-communicator': 'IP-коммуникатор (по интернет)',
+        // Резервное и аварийное питание
+        'ups-1000va': 'ИБП 1000ВА (для серверного оборудования)',
+        'ups-3000va': 'ИБП 3000ВА (для крупных систем)',
+        'generator-interface': 'Модуль сопряжения с генератором',
+        'voltage-monitor': 'Контроллер напряжения сети (мониторинг 220В)',
+        // Системы автоматического пожаротушения
+        'fire-pump-controller': 'Контроллер пожарного насоса',
+        'smoke-extraction-controller': 'Контроллер дымоудаления',
+        'fire-damper-controller': 'Контроллер противопожарных клапанов',
+        'sprinkler-valve-controller': 'Контроллер спринклерных задвижек'
+      }
+    }
+  }
+
+  // Настройки выбора конкретных моделей оборудования
+  const [selectedEquipmentModels, setSelectedEquipmentModels] = useState(() => {
+    const initial = {}
+    Object.keys(equipmentModels).forEach(category => {
+      Object.keys(equipmentModels[category].models).forEach(model => {
+        initial[model] = true // По умолчанию все модели выбраны
+      })
+    })
+    return initial
+  })
+
+  // Дополнительное оборудование (ручное добавление)
+  const [customEquipment, setCustomEquipment] = useState([])
+
+  // Функция для выбора всех моделей в категории
+  const selectAllModelsInCategory = (category) => {
+    const updated = { ...selectedEquipmentModels }
+    Object.keys(equipmentModels[category].models).forEach(model => {
+      updated[model] = true
+    })
+    setSelectedEquipmentModels(updated)
+  }
+
+  // Функция для отмены выбора всех моделей в категории
+  const deselectAllModelsInCategory = (category) => {
+    const updated = { ...selectedEquipmentModels }
+    Object.keys(equipmentModels[category].models).forEach(model => {
+      updated[model] = false
+    })
+    setSelectedEquipmentModels(updated)
+  }
 
   // Общая площадь здания (надземная + подземная части)
   const totalArea = aboveGroundArea + undergroundArea
@@ -110,12 +377,43 @@ function App() {
       (securityPostArea * securityPostCount) + (staffRoomArea * staffRoomCount)
     : 0
 
+  // Функция для получения выбранных моделей по категориям
+  const getSelectedModelsByCategory = (categoryKey) => {
+    if (!equipmentModels[categoryKey]) return []
+    return Object.entries(equipmentModels[categoryKey].models)
+      .filter(([modelKey]) => selectedEquipmentModels[modelKey])
+      .map(([modelKey, modelName]) => ({ key: modelKey, name: modelName }))
+  }
+
+  // Функция для проверки, выбрана ли хотя бы одна модель в категории
+  const isCategorySelected = (categoryKey) => {
+    if (!equipmentModels[categoryKey]) return false
+    return Object.keys(equipmentModels[categoryKey].models)
+      .some(modelKey => selectedEquipmentModels[modelKey])
+  }
+
   const calculateEquipment = () => {
     // Используем общую площадь для расчётов
     const area = totalArea
 
     // Расчёт зон контроля (ЗКПС) - основа для всех расчётов
     const zones = Math.ceil(area / zoneSize)
+
+    // Расчет пожарных отсеков на основе нормативов
+    const getFireCompartmentSize = (buildingType) => {
+      switch(buildingType) {
+        case 'residential_apartment': return 2500 // Жилые дома до 2500 м² на отсек
+        case 'office': return 2000 // Офисные здания
+        case 'warehouse': return 3000 // Складские помещения
+        case 'industrial': return 1800 // Производственные здания
+        case 'commercial': return 2200 // Торговые помещения
+        case 'parking_underground': return 3000 // Подземные парковки
+        default: return 2500
+      }
+    }
+
+    const compartmentSize = getFireCompartmentSize(buildingType)
+    const fireCompartments = Math.max(1, Math.ceil(area / compartmentSize))
 
     // Расчёт максимальной площади покрытия одним дымовым извещателем согласно СП 5.13130.2009
     // Базовое значение 85 м² при высоте до 3.5м, уменьшается при большей высоте
@@ -206,6 +504,25 @@ function App() {
       // Для остальных типов помещений - по площади с учётом высоты потолков
       totalDetectors = Math.ceil(area / adjustedDetectorCoverage)
     }
+
+    // Дополнительные датчики для лестничных клеток и лифтовых шахт
+    let additionalDetectorsForVerticalPaths = 0
+    if (buildingType === 'residential_apartment' && aboveGroundFloors > 3) {
+      // Дополнительные датчики в лестничных клетках и лифтовых шахтах для высотных зданий
+      const stairwells = Math.ceil(aboveGroundArea / 1000) // Примерно 1 лестничная клетка на 1000 м²
+      const elevators = Math.ceil(aboveGroundArea / 2000) // Примерно 1 лифт на 2000 м²
+      additionalDetectorsForVerticalPaths = (stairwells + elevators) * Math.ceil(aboveGroundFloors / 2)
+    }
+
+    // Корректировка для подземных этажей
+    let undergroundDetectors = 0
+    if (undergroundArea > 0) {
+      // Для подземных этажей используем повышенную плотность из-за особенностей дымоудаления
+      undergroundDetectors = Math.ceil(undergroundArea / 70) // Более плотное размещение
+    }
+
+    // Итоговое количество датчиков с учетом всех факторов
+    totalDetectors = Math.max(totalDetectors, Math.ceil(area / adjustedDetectorCoverage)) + additionalDetectorsForVerticalPaths + undergroundDetectors
 
     // Разделение на типы датчиков по принципам безопасности
     let smokeDetectors, heatDetectors, algorithmType
@@ -312,25 +629,29 @@ function App() {
         break
     }
 
-    // Расчёт ППКОП R3-РУБЕЖ-2ОП на основе технических характеристик
-    // Один прибор: до 500 пожарных зон, 2 АЛС × 3000м каждая
+    // Расчёт ППКОП R3-РУБЕЖ-2ОП для многосекционного жилого комплекса
+    // По ТЗ: в каждом пожарном отсеке - 1 прибор "R3-Рубеж-2ОП"
     const maxZonesPerPanel = 500 // Максимум зон на один прибор
     const maxLineLength = 3000 // Максимальная длина одной АЛС в метрах
     const linesPerPanel = 2 // Количество АЛС на один прибор
 
-    // Расчёт по зонам
+    // Для жилого комплекса из 10 секций + подземная автостоянка
+    // По ТЗ: 11 пожарных отсеков требуют 11 приборов управления
+    // (fireCompartments уже объявлен выше)
+
+    // Расчёт по зонам с учетом сложности объекта
     const panelsByZones = Math.ceil(zones / maxZonesPerPanel)
 
-    // Расчёт по длине линий (примерная длина АЛС на основе площади)
-    // Расчёт длины кабеля с учётом раздельной этажности
-    const aboveGroundLineLength = Math.sqrt(aboveGroundArea) * aboveGroundFloors * 1.5
-    const undergroundLineLength = Math.sqrt(undergroundArea) * undergroundFloors * 2.0 // Подземка сложнее для прокладки
+    // Расчёт по длине линий для многосекционного комплекса
+    // Увеличенные коэффициенты для сложной архитектуры
+    const aboveGroundLineLength = Math.sqrt(aboveGroundArea) * Math.sqrt(aboveGroundFloors) * 2.2 // Сложная геометрия
+    const undergroundLineLength = Math.sqrt(undergroundArea) * undergroundFloors * 2.5 // Подземная парковка
     const estimatedLineLength = aboveGroundLineLength + undergroundLineLength
-    const requiredLines = Math.ceil(estimatedLineLength / maxLineLength) * Math.ceil(zones / 100) // Дополнительные линии для больших объектов
+    const requiredLines = Math.ceil(estimatedLineLength / maxLineLength)
     const panelsByLineLength = Math.ceil(requiredLines / linesPerPanel)
 
-    // Итоговое количество приборов (по максимальному ограничению)
-    const controlPanels = Math.max(1, panelsByZones, panelsByLineLength)
+    // Итоговое количество приборов (минимум по количеству пожарных отсеков)
+    const controlPanels = Math.max(fireCompartments, panelsByZones, panelsByLineLength)
 
     // Ручные извещатели (алгоритм А - одноразовое срабатывание)
     // По периметру здания и в помещениях согласно нормативам
@@ -409,23 +730,37 @@ function App() {
     const sounders = Math.ceil((area / sounderArea) * sounderMultiplier)
     const beacons = Math.ceil(sounders * 0.5) // 50% световых оповещателей
 
-    // Источники питания ИВЭПР 24/2,5 RS-R3 - отдельный для каждой панели ППКОП
-    const powerSupplies = controlPanels // По одному источнику питания на каждую панель
-    const batteries = powerSupplies * 2 // По 2 аккумулятора 12В 7Ач на источник питания
+    // Источники питания ИВЭПР 24/2,5 RS-R3 для многосекционного комплекса
+    const powerSupplies = controlPanels // По одному источнику на каждый ППКОП
+    const batteries = powerSupplies * 2 // По 2 аккумулятора Delta DTM 12012 (12В 1.2Ач)
 
-    // Дополнительные релейные модули для управления системами
-    const relayModules = Math.ceil(zones / 10) // РМ-1/РМ-4 для управления оборудованием
+    // ЦПИУ "Рубеж" исп.02 - верхний уровень управления
+    // Расчет ЦПИУ с учетом сложности объекта и количества пожарных отсеков
+    let centralControlUnit = Math.ceil(controlPanels / 16) || 1 // 1 ЦПИУ на каждые 16 ППКОП
+
+    // Дополнительные ЦПИУ для крупных объектов с резервированием
+    if (fireCompartments > 8 || area > 15000) {
+      centralControlUnit = Math.max(centralControlUnit, 2) // Минимум 2 ЦПИУ для крупных объектов
+    }
+
+    // Релейные модули для управления сложными системами
+    const relayModules = Math.ceil(zones / 8) + controlPanels * 2 // РМ-1/РМ-4 + дополнительные для лифтов, ПДВ, ОВК
 
     // Монтажные коробки - для всех устройств на шлейфах
     const boxes = Math.ceil((totalDetectors + manualCallPoints + sounders + beacons) / 2)
 
     // Расчёт кабеля с учётом требований АЛС R3-РУБЕЖ-2ОП
-    const cableMultiplier = 1 + (cableReserve / 100) // Запас кабеля
+    // Увеличенный запас для сложных объектов
+    const adjustedCableReserve = fireCompartments > 5 ? cableReserve + 5 : cableReserve
+    const cableMultiplier = 1 + (adjustedCableReserve / 100) // Запас кабеля
 
     // КСРЭПнг(А)-FRHF для АЛС (адресные линии связи)
     // Длина АЛС ≤ 3000м на линию, 2 линии на прибор
     const alsLength = Math.min(estimatedLineLength, maxLineLength * linesPerPanel)
-    const loopCable = Math.ceil(controlPanels * alsLength * cableMultiplier)
+
+    // Дополнительный кабель для связи между пожарными отсеками
+    const interCompartmentCable = fireCompartments > 1 ? (fireCompartments - 1) * 50 : 0
+    const loopCable = Math.ceil(controlPanels * alsLength * cableMultiplier) + interCompartmentCable
 
     // КПРПГнг(А)-FRHF для питания панелей и источников питания
     const avgPowerRun = Math.sqrt(area) * 0.3 // Средняя длина до щитовых
@@ -441,38 +776,69 @@ function App() {
     const brackets = conduitLength * 3 // 3 скобы на 1 метр трубы
     const anchors = conduitLength * 3 // 3 анкера на 1 метр трубы
 
-    setResults({
-      smokeDetectors,
-      heatDetectors,
-      totalDetectors,
-      controlPanels,
-      manualCallPoints,
-      sounders,
-      beacons,
-      powerSupplies,
-      batteries,
-      boxes,
+    // Получаем выбранные модели по категориям
+    const selectedModels = {
+      detectors: getSelectedModelsByCategory('detectors'),
+      controlPanels: getSelectedModelsByCategory('controlPanels'),
+      manualCallPoints: getSelectedModelsByCategory('manualCallPoints'),
+      sounders: getSelectedModelsByCategory('sounders'),
+      powerSupplies: getSelectedModelsByCategory('powerSupplies'),
+      cables: getSelectedModelsByCategory('cables'),
+      mountingMaterials: getSelectedModelsByCategory('mountingMaterials'),
+      additionalEquipment: getSelectedModelsByCategory('additionalEquipment')
+    }
+
+    // Фильтруем результаты в зависимости от выбранных категорий
+    const filteredResults = {
+      // Основные результаты расчетов
+      smokeDetectors: isCategorySelected('detectors') ? smokeDetectors : 0,
+      heatDetectors: isCategorySelected('detectors') ? heatDetectors : 0,
+      totalDetectors: isCategorySelected('detectors') ? totalDetectors : 0,
+      controlPanels: isCategorySelected('controlPanels') ? controlPanels : 0,
+      manualCallPoints: isCategorySelected('manualCallPoints') ? manualCallPoints : 0,
+      sounders: isCategorySelected('sounders') ? sounders : 0,
+      beacons: isCategorySelected('sounders') ? beacons : 0,
+      powerSupplies: isCategorySelected('powerSupplies') ? powerSupplies : 0,
+      batteries: isCategorySelected('powerSupplies') ? batteries : 0,
+      boxes: Math.ceil((
+        (isCategorySelected('detectors') ? totalDetectors : 0) +
+        (isCategorySelected('manualCallPoints') ? manualCallPoints : 0) +
+        (isCategorySelected('sounders') ? sounders + beacons : 0)
+      ) / 2),
       zones,
-      loopCable,
-      powerCable,
-      sounderCable,
-      relayModules,
+      loopCable: isCategorySelected('cables') ? loopCable : 0,
+      powerCable: isCategorySelected('cables') ? powerCable : 0,
+      sounderCable: isCategorySelected('cables') ? sounderCable : 0,
+      relayModules: isCategorySelected('controlPanels') ? relayModules : 0,
       algorithmType,
       soueType,
       maxZonesPerPanel,
       alsLength: Math.ceil(alsLength),
-      totalCableLength,
-      conduitLength,
-      brackets,
-      anchors,
+      totalCableLength: isCategorySelected('cables') ? totalCableLength : 0,
+      conduitLength: isCategorySelected('mountingMaterials') ? conduitLength : 0,
+      brackets: isCategorySelected('mountingMaterials') ? brackets : 0,
+      anchors: isCategorySelected('mountingMaterials') ? anchors : 0,
+      // Дополнительная информация
       aboveGroundArea,
       undergroundArea,
       totalArea,
       adjustedDetectorCoverage,
       useDetailedRooms,
       calculatedRoomsCount,
-      calculatedRoomsArea
-    })
+      calculatedRoomsArea,
+      selectedEquipmentModels,
+      selectedModels,
+      customEquipment,
+      // Информация о пожарных отсеках
+      fireCompartments,
+      centralControlUnit,
+      // Статистика выбора
+      categoriesSelected: Object.keys(equipmentModels).filter(cat => isCategorySelected(cat)),
+      totalModelsSelected: Object.values(selectedEquipmentModels).filter(Boolean).length,
+      totalModelsAvailable: Object.keys(selectedEquipmentModels).length
+    }
+
+    setResults(filteredResults)
   }
 
   return (
@@ -497,13 +863,27 @@ function App() {
         {activeSection === 'calculator' && (
           <>
             <h1 className="portal-title">Калькулятор оборудования АПС</h1>
-            <p style={{textAlign: 'center', color: 'var(--text-white)', opacity: 0.9, marginBottom: '2rem'}}>
-              Автоматическая пожарная сигнализация - Расчёт оборудования и кабеля
+            <p style={{textAlign: 'center', color: 'var(--text-white)', opacity: 0.9, marginBottom: '1rem'}}>
+              Расчёт системы автоматической пожарной сигнализации
             </p>
+            <div style={{
+              background: 'rgba(255, 107, 53, 0.1)',
+              border: '1px solid rgba(255, 107, 53, 0.3)',
+              borderRadius: '8px',
+              padding: '1rem',
+              marginBottom: '2rem',
+              textAlign: 'center'
+            }}>
+              <h4 style={{color: 'var(--accent-orange)', margin: '0 0 0.5rem 0'}}>🔥 Калькулятор оборудования АПС</h4>
+              <p style={{margin: 0, color: 'var(--text-white)', fontSize: '0.9rem'}}>
+                Расчет автоматической пожарной сигнализации<br/>
+                Соответствует СП 5.13130.2009 · ГОСТ Р 53325-2012 · Система R3-Рубеж
+              </p>
+            </div>
 
             {/* Карточка параметров объекта */}
             <div className="portal-card floating">
-              <h2 className="portal-subtitle">Параметры объекта</h2>
+              <h2 className="portal-subtitle">🏢 Параметры многофункционального жилого комплекса</h2>
 
               <div className="portal-grid">
                 <div className="portal-grid-item">
@@ -513,23 +893,29 @@ function App() {
                     value={aboveGroundArea}
                     onChange={(e) => setAboveGroundArea(Number(e.target.value))}
                     className="portal-input"
-                    placeholder="Жилые, офисные, коммерческие помещения"
+                    placeholder="10 секций: жилые + коммерческие + ФОК"
                   />
+                  <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
+                    Включает: квартиры, ПОН, торговлю, ресторан, ФОК
+                  </small>
                 </div>
 
                 <div className="portal-grid-item">
-                  <label>Площадь подземной части (м²)</label>
+                  <label>Площадь подземной автостоянки (м²)</label>
                   <input
                     type="number"
                     value={undergroundArea}
                     onChange={(e) => setUndergroundArea(Number(e.target.value))}
                     className="portal-input"
-                    placeholder="Паркинги, технические помещения"
+                    placeholder="Общая подземная парковка + кладовые + техпомещения"
                   />
+                  <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
+                    ПО № 11: паркинг, кладовые, технические, мусорные
+                  </small>
                 </div>
 
                 <div className="portal-grid-item">
-                  <label>Этажи надземной части</label>
+                  <label>Максимальная этажность секций</label>
                   <input
                     type="number"
                     value={aboveGroundFloors}
@@ -537,10 +923,13 @@ function App() {
                     className="portal-input"
                     min="1"
                   />
+                  <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
+                    Максимальная этажность здания
+                  </small>
                 </div>
 
                 <div className="portal-grid-item">
-                  <label>Этажи подземной части</label>
+                  <label>Подземные этажи</label>
                   <input
                     type="number"
                     value={undergroundFloors}
@@ -548,11 +937,17 @@ function App() {
                     className="portal-input"
                     min="0"
                   />
+                  <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
+                    Количество подземных этажей (парковка, технические помещения)
+                  </small>
                 </div>
               </div>
 
-              <div style={{textAlign: 'center', margin: '1.5rem 0', color: 'var(--text-white)'}}>
-                <strong>Общая площадь: {totalArea.toLocaleString()} м² | Всего этажей: {totalFloors}</strong>
+              <div style={{textAlign: 'center', margin: '1.5rem 0', color: 'var(--text-white)', background: 'rgba(255, 107, 53, 0.1)', padding: '1rem', borderRadius: '8px'}}>
+                <strong>🏢 Общая площадь: {totalArea.toLocaleString()} м²</strong><br/>
+                <span style={{fontSize: '0.9rem'}}>
+                  Макс. этажность: {aboveGroundFloors} эт. | Подземных: {undergroundFloors} эт. | Квартир: {calculatedApartmentsCount}
+                </span>
               </div>
 
               {/* Настройки квартир */}
@@ -662,59 +1057,22 @@ function App() {
                 </div>
 
                 <div className="portal-grid-item">
-                  <label>Покрытие датчика (м²)</label>
-                  <input
-                    type="number"
-                    value={detectorCoverage}
-                    onChange={(e) => setDetectorCoverage(Number(e.target.value))}
-                    className="portal-input"
-                    min="1"
-                  />
-                </div>
-
-                <div className="portal-grid-item">
-                  <label>Расстояние между ИПР (м)</label>
-                  <input
-                    type="number"
-                    value={manualCallDistance}
-                    onChange={(e) => setManualCallDistance(Number(e.target.value))}
-                    className="portal-input"
-                    min="1"
-                  />
-                </div>
-
-                <div className="portal-grid-item">
-                  <label>Радиус оповещателя (м)</label>
-                  <input
-                    type="number"
-                    value={sounderCoverage}
-                    onChange={(e) => setSounderCoverage(Number(e.target.value))}
-                    className="portal-input"
-                    min="1"
-                  />
-                </div>
-
-                <div className="portal-grid-item">
-                  <label>Запас кабеля (%)</label>
-                  <input
-                    type="number"
-                    value={cableReserve}
-                    onChange={(e) => setCableReserve(Number(e.target.value))}
-                    className="portal-input"
-                    min="0"
-                    max="50"
-                  />
-                </div>
-
-                <div className="portal-grid-item">
-                  <label>Размер зоны (м²)</label>
-                  <input
-                    type="number"
-                    value={zoneSize}
-                    onChange={(e) => setZoneSize(Number(e.target.value))}
-                    className="portal-input"
-                    min="100"
-                  />
+                  <button
+                    onClick={() => setShowAPSSettingsModal(true)}
+                    className="portal-button"
+                    style={{
+                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '1rem 1.5rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '1rem',
+                      marginTop: '1.5rem'
+                    }}
+                  >
+                    ⚙️ Расширенные настройки АПС
+                  </button>
                 </div>
               </div>
 
@@ -945,6 +1303,19 @@ function App() {
                     </div>
                   </div>
                 </div>
+                {/* Дополнительная статистика и информация */}
+                {results.customEquipment.length > 0 && (
+                  <div className="portal-card" style={{marginTop: '2rem', background: 'rgba(138, 43, 226, 0.1)', border: '1px solid rgba(138, 43, 226, 0.3)'}}>
+                    <h3 style={{color: '#ba68c8', marginBottom: '1rem'}}>🛠️ Дополнительное оборудование (ручное)</h3>
+                    <div className="portal-grid">
+                      {results.customEquipment.map((item, index) => (
+                        <div key={index} className="portal-grid-item">
+                          <p><strong>{item.name}:</strong> {item.quantity} {item.unit}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </>
@@ -1432,6 +1803,290 @@ function App() {
                 className="portal-button"
               >
                 ✅ Применить настройки
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно для настроек АПС */}
+      {showAPSSettingsModal && (
+        <div className="portal-modal active">
+          <div className="portal-modal-content" style={{maxWidth: '900px', maxHeight: '80vh', overflowY: 'auto'}}>
+            <h3 style={{color: 'var(--text-white)', marginBottom: '1.5rem', textAlign: 'center'}}>
+              ⚙️ Расширенные настройки системы АПС
+            </h3>
+
+            {/* Основные параметры */}
+            <div style={{marginBottom: '2rem'}}>
+              <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>Основные параметры</h4>
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>Покрытие датчика (м²)</label>
+                  <input
+                    type="number"
+                    value={detectorCoverage}
+                    onChange={(e) => setDetectorCoverage(Number(e.target.value))}
+                    className="portal-input"
+                    min="1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Расстояние между ИПР (м)</label>
+                  <input
+                    type="number"
+                    value={manualCallDistance}
+                    onChange={(e) => setManualCallDistance(Number(e.target.value))}
+                    className="portal-input"
+                    min="1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Радиус оповещателя (м)</label>
+                  <input
+                    type="number"
+                    value={sounderCoverage}
+                    onChange={(e) => setSounderCoverage(Number(e.target.value))}
+                    className="portal-input"
+                    min="1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Запас кабеля (%)</label>
+                  <input
+                    type="number"
+                    value={cableReserve}
+                    onChange={(e) => setCableReserve(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    max="50"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Размер зоны (м²)</label>
+                  <input
+                    type="number"
+                    value={zoneSize}
+                    onChange={(e) => setZoneSize(Number(e.target.value))}
+                    className="portal-input"
+                    min="100"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Выбор оборудования для расчета */}
+            <div style={{marginBottom: '2rem'}}>
+              <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>Выбор оборудования для расчета</h4>
+
+              {/* Отображаем каждую категорию оборудования */}
+              {Object.entries(equipmentModels).map(([categoryKey, categoryData]) => {
+                const categoryModels = Object.keys(categoryData.models)
+                const selectedCount = categoryModels.filter(model => selectedEquipmentModels[model]).length
+                const allSelected = selectedCount === categoryModels.length
+
+                return (
+                  <div key={categoryKey} style={{
+                    marginBottom: '1.5rem',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(255, 107, 53, 0.2)'
+                  }}>
+                    {/* Заголовок категории с кнопкой "Выбрать все" */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '1rem'
+                    }}>
+                      <h5 style={{
+                        color: 'var(--text-white)',
+                        margin: 0,
+                        fontSize: '1.1rem',
+                        fontWeight: '600'
+                      }}>
+                        {categoryData.name} ({selectedCount}/{categoryModels.length})
+                      </h5>
+
+                      <div style={{display: 'flex', gap: '0.5rem'}}>
+                        <button
+                          onClick={() => selectAllModelsInCategory(categoryKey)}
+                          className="portal-button"
+                          style={{
+                            background: allSelected
+                              ? 'linear-gradient(135deg, #27ae60, #229954)'
+                              : 'linear-gradient(135deg, #3498db, #2980b9)',
+                            padding: '0.5rem 1rem',
+                            fontSize: '0.85rem',
+                            opacity: allSelected ? 0.7 : 1
+                          }}
+                          disabled={allSelected}
+                        >
+                          ✅ Выбрать все
+                        </button>
+
+                        <button
+                          onClick={() => deselectAllModelsInCategory(categoryKey)}
+                          className="portal-button"
+                          style={{
+                            background: selectedCount === 0
+                              ? 'linear-gradient(135deg, #95a5a6, #7f8c8d)'
+                              : 'linear-gradient(135deg, #e74c3c, #c0392b)',
+                            padding: '0.5rem 1rem',
+                            fontSize: '0.85rem',
+                            opacity: selectedCount === 0 ? 0.7 : 1
+                          }}
+                          disabled={selectedCount === 0}
+                        >
+                          ❌ Отменить все
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Список моделей в категории */}
+                    <div className="portal-grid" style={{gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))'}}>
+                      {Object.entries(categoryData.models).map(([modelKey, modelName]) => (
+                        <div key={modelKey} className="portal-grid-item">
+                          <label style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '0.75rem',
+                            cursor: 'pointer',
+                            padding: '0.75rem',
+                            background: selectedEquipmentModels[modelKey]
+                              ? 'rgba(255, 107, 53, 0.1)'
+                              : 'rgba(255, 255, 255, 0.03)',
+                            borderRadius: '8px',
+                            border: selectedEquipmentModels[modelKey]
+                              ? '1px solid rgba(255, 107, 53, 0.3)'
+                              : '1px solid rgba(255, 255, 255, 0.1)',
+                            transition: 'all 0.3s ease'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={selectedEquipmentModels[modelKey] || false}
+                              onChange={(e) => setSelectedEquipmentModels({
+                                ...selectedEquipmentModels,
+                                [modelKey]: e.target.checked
+                              })}
+                              style={{
+                                width: '18px',
+                                height: '18px',
+                                accentColor: 'var(--accent-orange)',
+                                marginTop: '2px'
+                              }}
+                            />
+                            <span style={{
+                              color: 'var(--text-white)',
+                              fontSize: '0.9rem',
+                              lineHeight: '1.4',
+                              fontWeight: selectedEquipmentModels[modelKey] ? '500' : '400'
+                            }}>
+                              {modelName}
+                            </span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Дополнительное оборудование */}
+            <div style={{marginBottom: '2rem'}}>
+              <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>Дополнительное оборудование</h4>
+              {customEquipment.map((item, index) => (
+                <div key={index} className="portal-grid" style={{marginBottom: '1rem', background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px'}}>
+                  <div className="portal-grid-item">
+                    <label>Название</label>
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => {
+                        const updated = [...customEquipment]
+                        updated[index].name = e.target.value
+                        setCustomEquipment(updated)
+                      }}
+                      className="portal-input"
+                      placeholder="Название оборудования"
+                    />
+                  </div>
+                  <div className="portal-grid-item">
+                    <label>Количество</label>
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const updated = [...customEquipment]
+                        updated[index].quantity = Number(e.target.value)
+                        setCustomEquipment(updated)
+                      }}
+                      className="portal-input"
+                      min="1"
+                    />
+                  </div>
+                  <div className="portal-grid-item">
+                    <label>Единица измерения</label>
+                    <input
+                      type="text"
+                      value={item.unit}
+                      onChange={(e) => {
+                        const updated = [...customEquipment]
+                        updated[index].unit = e.target.value
+                        setCustomEquipment(updated)
+                      }}
+                      className="portal-input"
+                      placeholder="шт., м, кг"
+                    />
+                  </div>
+                  <div className="portal-grid-item" style={{display: 'flex', alignItems: 'end'}}>
+                    <button
+                      onClick={() => {
+                        const updated = customEquipment.filter((_, i) => i !== index)
+                        setCustomEquipment(updated)
+                      }}
+                      className="portal-button"
+                      style={{
+                        background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
+                        padding: '0.75rem 1rem',
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      🗑️ Удалить
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                onClick={() => setCustomEquipment([...customEquipment, {name: '', quantity: 1, unit: 'шт.'}])}
+                className="portal-button"
+                style={{
+                  background: 'linear-gradient(135deg, #27ae60, #229954)',
+                  marginTop: '1rem'
+                }}
+              >
+                ➕ Добавить оборудование
+              </button>
+            </div>
+
+            <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem'}}>
+              <button
+                onClick={() => setShowAPSSettingsModal(false)}
+                className="portal-button"
+                style={{
+                  background: 'linear-gradient(135deg, var(--accent-orange), var(--accent-red))'
+                }}
+              >
+                ✅ Применить настройки
+              </button>
+              <button
+                onClick={() => setShowAPSSettingsModal(false)}
+                className="portal-button secondary"
+              >
+                ❌ Отмена
               </button>
             </div>
           </div>

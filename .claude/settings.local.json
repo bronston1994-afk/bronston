@@ -13,7 +13,10 @@
       "Bash(start http://localhost:5177)",
       "Bash(git add:*)",
       "Bash(start http://localhost:5178)",
-      "Bash(start http://localhost:5179)"
+      "Bash(start http://localhost:5179)",
+      "Bash(powershell:*)",
+      "Bash(git checkout:*)",
+      "Bash(start http://localhost:5181)"
     ],
     "deny": [],
     "ask": []
