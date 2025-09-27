@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import './App.css'
 
 function App() {
+  // Основные состояния здания
   const [aboveGroundArea, setAboveGroundArea] = useState(800) // Надземная часть
   const [undergroundArea, setUndergroundArea] = useState(200) // Подземная парковка
   const [aboveGroundFloors, setAboveGroundFloors] = useState(3) // Этажи надземной части
@@ -19,7 +21,6 @@ function App() {
 
   // Детальный выбор помещений по типам
   const [useDetailedRooms, setUseDetailedRooms] = useState(false) // Переключатель детального режима помещений
-
 
   // Общие помещения
   const [stairwellCount, setStairwellCount] = useState(0)
@@ -60,6 +61,8 @@ function App() {
   const [securityPostArea, setSecurityPostArea] = useState(0)
   const [staffRoomCount, setStaffRoomCount] = useState(0)
   const [staffRoomArea, setStaffRoomArea] = useState(0)
+
+  // Настройки системы АПС
   const [rooms, setRooms] = useState(25)
   const [height, setHeight] = useState(3.0)
   const [buildingType, setBuildingType] = useState('residential_apartment')
@@ -68,11 +71,12 @@ function App() {
   const [sounderCoverage, setSounderCoverage] = useState(15)
   const [cableReserve, setCableReserve] = useState(15)
   const [zoneSize, setZoneSize] = useState(500)
-  const [results, setResults] = useState(null)
 
-  // Состояния для управления модальными окнами
+  // Результаты и состояния интерфейса
+  const [results, setResults] = useState(null)
   const [showApartmentsModal, setShowApartmentsModal] = useState(false)
   const [showRoomsModal, setShowRoomsModal] = useState(false)
+  const [activeSection, setActiveSection] = useState('calculator') // Навигация портала
 
   // Общая площадь здания (надземная + подземная части)
   const totalArea = aboveGroundArea + undergroundArea
@@ -461,1506 +465,836 @@ function App() {
     })
   }
 
-  const styles = {
-    body: {
-      fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      minHeight: '100vh',
-      margin: 0,
-      padding: 0,
-      width: '100vw',
-      overflowX: 'hidden'
-    },
-    container: {
-      width: '100vw',
-      maxWidth: 'none',
-      margin: 0,
-      background: 'rgba(255, 255, 255, 0.95)',
-      borderRadius: 0,
-      boxShadow: 'none',
-      overflow: 'hidden',
-      minHeight: '100vh'
-    },
-    header: {
-      background: 'linear-gradient(45deg, #ff6b6b, #ee5a24)',
-      color: 'white',
-      padding: '30px',
-      textAlign: 'center'
-    },
-    headerTitle: {
-      fontSize: '2.5em',
-      marginBottom: '10px',
-      textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
-    },
-    headerSubtitle: {
-      fontSize: '1.2em',
-      opacity: 0.9
-    },
-    mainContent: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '20px',
-      padding: '10px 0'
-    },
-    section: {
-      background: 'white',
-      borderRadius: '15px',
-      padding: '25px',
-      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-      transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-    },
-    sectionTitle: {
-      fontSize: '1.5em',
-      color: '#2c3e50',
-      marginBottom: '20px',
-      paddingBottom: '10px',
-      borderBottom: '3px solid #3498db',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px'
-    },
-    inputGroup: {
-      marginBottom: '20px'
-    },
-    label: {
-      display: 'block',
-      marginBottom: '8px',
-      fontWeight: 600,
-      color: '#2c3e50',
-      fontSize: '0.9em'
-    },
-    input: {
-      width: '100%',
-      padding: '12px 15px',
-      border: '2px solid #e0e6ed',
-      borderRadius: '10px',
-      fontSize: '1em',
-      transition: 'all 0.3s ease',
-      background: '#f8f9fa',
-      boxSizing: 'border-box',
-      color: '#2c3e50' // Устанавливаем тёмный цвет текста для лучшей видимости
-    },
-    calculateBtn: {
-      background: 'linear-gradient(45deg, #3498db, #2980b9)',
-      color: 'white',
-      border: 'none',
-      padding: '15px 30px',
-      borderRadius: '10px',
-      fontSize: '1.1em',
-      fontWeight: 600,
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      width: '100%',
-      marginTop: '20px'
-    },
-    results: {
-      gridColumn: '1 / -1',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
-      borderRadius: '15px',
-      padding: '20px',
-      marginTop: '5px'
-    },
-    resultsGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-      gap: '20px',
-      marginTop: '20px'
-    },
-    resultCard: {
-      background: 'rgba(255, 255, 255, 0.1)',
-      borderRadius: '10px',
-      padding: '20px',
-      backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(255, 255, 255, 0.2)'
-    },
-    resultCardTitle: {
-      marginBottom: '15px',
-      color: '#fff',
-      fontSize: '1.2em'
-    },
-    resultItem: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      marginBottom: '10px',
-      padding: '8px 0',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-    },
-    resultValue: {
-      fontWeight: 600,
-      color: '#ffd700'
-    },
-
-    // Стили для модальных окон
-    modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      backdropFilter: 'blur(5px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    },
-
-    modalContent: {
-      backgroundColor: 'white',
-      borderRadius: '16px',
-      padding: '30px',
-      maxWidth: '800px',
-      width: '100%',
-      maxHeight: '90vh',
-      overflowY: 'auto',
-      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
-      position: 'relative'
-    },
-
-    modalTitle: {
-      margin: '0 0 8px 0',
-      fontSize: '24px',
-      fontWeight: 'bold',
-      color: '#333',
-      textAlign: 'center'
-    },
-
-    modalSubtitle: {
-      margin: '0 0 25px 0',
-      fontSize: '16px',
-      color: '#666',
-      textAlign: 'center'
-    },
-
-    modalGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-      gap: '20px',
-      marginBottom: '25px'
-    },
-
-    apartmentInput: {
-      display: 'flex',
-      flexDirection: 'column'
-    },
-
-    modalLabel: {
-      fontSize: '14px',
-      fontWeight: '600',
-      color: '#333',
-      marginBottom: '8px'
-    },
-
-    modalInput: {
-      padding: '12px',
-      border: '2px solid #e9ecef',
-      borderRadius: '8px',
-      fontSize: '16px',
-      transition: 'border-color 0.3s',
-      outline: 'none',
-      minWidth: '0'
-    },
-
-    modalSummary: {
-      backgroundColor: '#f8f9fa',
-      borderRadius: '12px',
-      padding: '20px',
-      marginBottom: '25px'
-    },
-
-    summaryItem: {
-      fontSize: '16px',
-      marginBottom: '8px',
-      color: '#333'
-    },
-
-    modalButtons: {
-      display: 'flex',
-      justifyContent: 'center',
-      gap: '15px'
-    },
-
-    modalCloseButton: {
-      backgroundColor: '#28a745',
-      color: 'white',
-      border: 'none',
-      borderRadius: '8px',
-      padding: '12px 30px',
-      fontSize: '16px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: 'background-color 0.3s'
-    }
-  }
-
   return (
-    <div style={styles.body}>
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <h1 style={styles.headerTitle}>🔥 Калькулятор АПС</h1>
-          <p style={styles.headerSubtitle}>Автоматическая пожарная сигнализация - Расчёт оборудования и кабеля</p>
-        </div>
+    <div>
+      {/* Навигационная панель портала */}
+      <header className="portal-header">
+        <nav className="portal-nav">
+          <a href="#" className="portal-logo">
+            Портал АПС
+          </a>
+          <ul className="portal-menu">
+            <li><a href="#" onClick={() => setActiveSection('calculator')}>Калькулятор</a></li>
+            <li><a href="#" onClick={() => setActiveSection('history')}>История</a></li>
+            <li><a href="#" onClick={() => setActiveSection('settings')}>Настройки</a></li>
+            <li><a href="#" onClick={() => setActiveSection('help')}>Справка</a></li>
+          </ul>
+        </nav>
+      </header>
 
-        <div style={styles.mainContent}>
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>
-              <span>🏢</span>
-              Параметры объекта
-            </h2>
-            
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Площадь надземной части (м²)</label>
-              <input
-                type="number"
-                value={aboveGroundArea}
-                onChange={(e) => setAboveGroundArea(Number(e.target.value))}
-                style={styles.input}
-                placeholder="Жилые, офисные, коммерческие помещения"
-              />
-            </div>
+      {/* Основной контейнер портала */}
+      <div className="portal-container">
+        {activeSection === 'calculator' && (
+          <>
+            <h1 className="portal-title">Калькулятор оборудования АПС</h1>
+            <p style={{textAlign: 'center', color: 'var(--text-white)', opacity: 0.9, marginBottom: '2rem'}}>
+              Автоматическая пожарная сигнализация - Расчёт оборудования и кабеля
+            </p>
 
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Площадь подземной парковки (м²)</label>
-              <input
-                type="number"
-                value={undergroundArea}
-                onChange={(e) => setUndergroundArea(Number(e.target.value))}
-                style={styles.input}
-                placeholder="Автомобильная парковка, технические помещения"
-              />
-            </div>
+            {/* Карточка параметров объекта */}
+            <div className="portal-card floating">
+              <h2 className="portal-subtitle">Параметры объекта</h2>
 
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Общая площадь объекта (м²)</label>
-              <input
-                type="number"
-                value={totalArea}
-                readOnly
-                style={{...styles.input, backgroundColor: '#e9ecef', cursor: 'not-allowed'}}
-                title="Рассчитывается автоматически как сумма надземной и подземной частей"
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Этажи надземной части</label>
-              <select
-                value={aboveGroundFloors}
-                onChange={(e) => setAboveGroundFloors(Number(e.target.value))}
-                style={styles.input}
-              >
-                {Array.from({length: 100}, (_, i) => i + 1).map(num => (
-                  <option key={num} value={num}>{num}</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Этажи подземной части</label>
-              <select
-                value={undergroundFloors}
-                onChange={(e) => setUndergroundFloors(Number(e.target.value))}
-                style={styles.input}
-              >
-                {Array.from({length: 10}, (_, i) => i + 1).map(num => (
-                  <option key={num} value={num}>{num}</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Общее количество этажей</label>
-              <input
-                type="number"
-                value={totalFloors}
-                readOnly
-                style={{...styles.input, backgroundColor: '#e9ecef', cursor: 'not-allowed'}}
-                title="Рассчитывается автоматически как сумма надземных и подземных этажей"
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>
-                <input
-                  type="checkbox"
-                  checked={useDetailedApartments}
-                  onChange={(e) => setUseDetailedApartments(e.target.checked)}
-                  style={{marginRight: '10px'}}
-                />
-                Детальный выбор квартир по комнатности
-              </label>
-            </div>
-
-            {!useDetailedApartments ? (
-              <div style={styles.inputGroup}>
-                <label style={styles.label}>Общее количество квартир</label>
-                <input
-                  type="number"
-                  value={apartmentsCount}
-                  onChange={(e) => setApartmentsCount(Number(e.target.value))}
-                  style={styles.input}
-                  placeholder="Общее количество квартир в здании"
-                />
-              </div>
-            ) : (
-              <>
-                <div style={styles.inputGroup}>
-                  <button
-                    onClick={() => setShowApartmentsModal(true)}
-                    style={{
-                      ...styles.button,
-                      backgroundColor: '#007bff',
-                      color: 'white',
-                      padding: '12px 20px',
-                      fontSize: '16px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      width: '100%',
-                      transition: 'background-color 0.3s'
-                    }}
-                    onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
-                    onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
-                  >
-                    🏠 Настроить квартиры по комнатности
-                  </button>
-                </div>
-
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Общее количество квартир (рассчитано)</label>
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>Площадь надземной части (м²)</label>
                   <input
                     type="number"
-                    value={calculatedApartmentsCount}
-                    readOnly
-                    style={{...styles.input, backgroundColor: '#e9ecef', cursor: 'not-allowed'}}
-                    title="Рассчитывается автоматически как сумма всех квартир"
+                    value={aboveGroundArea}
+                    onChange={(e) => setAboveGroundArea(Number(e.target.value))}
+                    className="portal-input"
+                    placeholder="Жилые, офисные, коммерческие помещения"
                   />
                 </div>
 
-                {calculatedApartmentsCount > 0 && (
-                  <div style={{
-                    padding: '12px',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '8px',
-                    border: '1px solid #e9ecef',
-                    marginTop: '10px'
-                  }}>
-                    <div style={{fontSize: '14px', color: '#6c757d', marginBottom: '8px'}}>
-                      <strong>Текущий состав квартир:</strong>
-                    </div>
-                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', fontSize: '13px'}}>
-                      {apartment1Room > 0 && <span>1к: {apartment1Room} шт.</span>}
-                      {apartment2Room > 0 && <span>2к: {apartment2Room} шт.</span>}
-                      {apartment3Room > 0 && <span>3к: {apartment3Room} шт.</span>}
-                      {apartment4Room > 0 && <span>4к: {apartment4Room} шт.</span>}
-                      {apartment5Room > 0 && <span>5к: {apartment5Room} шт.</span>}
-                      {apartment6Room > 0 && <span>6к: {apartment6Room} шт.</span>}
-                      {apartment7Room > 0 && <span>7к: {apartment7Room} шт.</span>}
-                    </div>
+                <div className="portal-grid-item">
+                  <label>Площадь подземной части (м²)</label>
+                  <input
+                    type="number"
+                    value={undergroundArea}
+                    onChange={(e) => setUndergroundArea(Number(e.target.value))}
+                    className="portal-input"
+                    placeholder="Паркинги, технические помещения"
+                  />
+                </div>
+
+                <div className="portal-grid-item">
+                  <label>Этажи надземной части</label>
+                  <input
+                    type="number"
+                    value={aboveGroundFloors}
+                    onChange={(e) => setAboveGroundFloors(Number(e.target.value))}
+                    className="portal-input"
+                    min="1"
+                  />
+                </div>
+
+                <div className="portal-grid-item">
+                  <label>Этажи подземной части</label>
+                  <input
+                    type="number"
+                    value={undergroundFloors}
+                    onChange={(e) => setUndergroundFloors(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div style={{textAlign: 'center', margin: '1.5rem 0', color: 'var(--text-white)'}}>
+                <strong>Общая площадь: {totalArea.toLocaleString()} м² | Всего этажей: {totalFloors}</strong>
+              </div>
+
+              {/* Настройки квартир */}
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={useDetailedApartments}
+                      onChange={(e) => setUseDetailedApartments(e.target.checked)}
+                      style={{marginRight: '10px'}}
+                    />
+                    Детализированный подсчёт по типам квартир
+                  </label>
+                  {!useDetailedApartments && (
+                    <input
+                      type="number"
+                      value={apartmentsCount}
+                      onChange={(e) => setApartmentsCount(Number(e.target.value))}
+                      className="portal-input"
+                      placeholder="Общее количество квартир"
+                      style={{marginTop: '10px'}}
+                    />
+                  )}
+                </div>
+
+                {useDetailedApartments && (
+                  <div className="portal-grid-item">
+                    <button
+                      onClick={() => setShowApartmentsModal(true)}
+                      className="portal-button"
+                    >
+                      Настроить квартиры ({calculatedApartmentsCount} шт.)
+                    </button>
                   </div>
                 )}
-              </>
-            )}
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>
-                <input
-                  type="checkbox"
-                  checked={useDetailedRooms}
-                  onChange={(e) => setUseDetailedRooms(e.target.checked)}
-                  style={{marginRight: '10px'}}
-                />
-                Детальный выбор помещений по типам
-              </label>
-            </div>
-
-            {useDetailedRooms ? (
-              <>
-
-                <h3 style={{...styles.sectionTitle, fontSize: '1.2em', marginBottom: '15px', borderBottom: '2px solid #27ae60', marginTop: '20px'}}>
-                  <span>🚪</span>
-                  Общие помещения
-                </h3>
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество лестничных клеток на 1 этаже</label>
-                    <input
-                      type="number"
-                      value={stairwellCount}
-                      onChange={(e) => setStairwellCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                    {stairwellCount > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общее количество лестничных клеток: {stairwellCount} × {totalFloors} этажей = {(stairwellCount * totalFloors)} шт.
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 лестничной клетки (м²)</label>
-                    <input
-                      type="number"
-                      value={stairwellArea}
-                      onChange={(e) => setStairwellArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {stairwellCount > 0 && stairwellArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь лестничных клеток: {stairwellArea} × {(stairwellCount * totalFloors)} = {(stairwellCount * totalFloors * stairwellArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество лифтовых холлов на 1 этаже</label>
-                    <input
-                      type="number"
-                      value={elevatorHallCount}
-                      onChange={(e) => setElevatorHallCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                    {elevatorHallCount > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общее количество лифтовых холлов: {elevatorHallCount} × {totalFloors} этажей = {(elevatorHallCount * totalFloors)} шт.
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 лифтового холла (м²)</label>
-                    <input
-                      type="number"
-                      value={elevatorHallArea}
-                      onChange={(e) => setElevatorHallArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {elevatorHallCount > 0 && elevatorHallArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь лифтовых холлов: {elevatorHallArea} × {(elevatorHallCount * totalFloors)} = {(elevatorHallCount * totalFloors * elevatorHallArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество общих коридоров на 1 этаже</label>
-                    <input
-                      type="number"
-                      value={commonCorridorCount}
-                      onChange={(e) => setCommonCorridorCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                    {commonCorridorCount > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общее количество общих коридоров: {commonCorridorCount} × {totalFloors} этажей = {(commonCorridorCount * totalFloors)} шт.
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 общего коридора (м²)</label>
-                    <input
-                      type="number"
-                      value={commonCorridorArea}
-                      onChange={(e) => setCommonCorridorArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {commonCorridorCount > 0 && commonCorridorArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь общих коридоров: {commonCorridorArea} × {(commonCorridorCount * totalFloors)} = {(commonCorridorCount * totalFloors * commonCorridorArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                </div>
-
-                <h3 style={{...styles.sectionTitle, fontSize: '1.2em', marginBottom: '15px', borderBottom: '2px solid #f39c12', marginTop: '20px'}}>
-                  <span>⚙️</span>
-                  Технические помещения
-                </h3>
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество венткамер</label>
-                    <input
-                      type="number"
-                      value={techVentilationCount}
-                      onChange={(e) => setTechVentilationCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 венткамеры (м²)</label>
-                    <input
-                      type="number"
-                      value={techVentilationArea}
-                      onChange={(e) => setTechVentilationArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {techVentilationCount > 0 && techVentilationArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь венткамер: {(techVentilationCount * techVentilationArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество электрощитовых</label>
-                    <input
-                      type="number"
-                      value={techElectricalCount}
-                      onChange={(e) => setTechElectricalCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 электрощитовой (м²)</label>
-                    <input
-                      type="number"
-                      value={techElectricalArea}
-                      onChange={(e) => setTechElectricalArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {techElectricalCount > 0 && techElectricalArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь электрощитовых: {(techElectricalCount * techElectricalArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество тепловых пунктов (ИТП)</label>
-                    <input
-                      type="number"
-                      value={techHeatingCount}
-                      onChange={(e) => setTechHeatingCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 теплового пункта (м²)</label>
-                    <input
-                      type="number"
-                      value={techHeatingArea}
-                      onChange={(e) => setTechHeatingArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {techHeatingCount > 0 && techHeatingArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь тепловых пунктов: {(techHeatingCount * techHeatingArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество насосных станций</label>
-                    <input
-                      type="number"
-                      value={techPumpingCount}
-                      onChange={(e) => setTechPumpingCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 насосной станции (м²)</label>
-                    <input
-                      type="number"
-                      value={techPumpingArea}
-                      onChange={(e) => setTechPumpingArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {techPumpingCount > 0 && techPumpingArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь насосных станций: {(techPumpingCount * techPumpingArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество трансформаторных подстанций</label>
-                    <input
-                      type="number"
-                      value={techTransformerCount}
-                      onChange={(e) => setTechTransformerCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 трансформаторной подстанции (м²)</label>
-                    <input
-                      type="number"
-                      value={techTransformerArea}
-                      onChange={(e) => setTechTransformerArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {techTransformerCount > 0 && techTransformerArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь трансформаторных подстанций: {(techTransformerCount * techTransformerArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество слаботочных систем (СС)</label>
-                    <input
-                      type="number"
-                      value={techTelecomCount}
-                      onChange={(e) => setTechTelecomCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 помещения слаботочных систем (м²)</label>
-                    <input
-                      type="number"
-                      value={techTelecomArea}
-                      onChange={(e) => setTechTelecomArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {techTelecomCount > 0 && techTelecomArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь слаботочных систем: {(techTelecomCount * techTelecomArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество водомерных узлов</label>
-                    <input
-                      type="number"
-                      value={techWaterCount}
-                      onChange={(e) => setTechWaterCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 водомерного узла (м²)</label>
-                    <input
-                      type="number"
-                      value={techWaterArea}
-                      onChange={(e) => setTechWaterArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {techWaterCount > 0 && techWaterArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь водомерных узлов: {(techWaterCount * techWaterArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество технических этажей/пространств</label>
-                    <input
-                      type="number"
-                      value={techFloorCount}
-                      onChange={(e) => setTechFloorCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 технического этажа/пространства (м²)</label>
-                    <input
-                      type="number"
-                      value={techFloorArea}
-                      onChange={(e) => setTechFloorArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {techFloorCount > 0 && techFloorArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь технических этажей/пространств: {(techFloorCount * techFloorArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                </div>
-
-                <h3 style={{...styles.sectionTitle, fontSize: '1.2em', marginBottom: '15px', borderBottom: '2px solid #9b59b6', marginTop: '20px'}}>
-                  <span>🚗</span>
-                  Хранение и парковка
-                </h3>
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество индивидуальных кладовых</label>
-                    <input
-                      type="number"
-                      value={storageCount}
-                      onChange={(e) => setStorageCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 кладовой (м²)</label>
-                    <input
-                      type="number"
-                      value={storageArea}
-                      onChange={(e) => setStorageArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {storageCount > 0 && storageArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь кладовых: {(storageCount * storageArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество мусоросборных камер</label>
-                    <input
-                      type="number"
-                      value={wasteRoomCount}
-                      onChange={(e) => setWasteRoomCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 мусоросборной камеры (м²)</label>
-                    <input
-                      type="number"
-                      value={wasteRoomArea}
-                      onChange={(e) => setWasteRoomArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {wasteRoomCount > 0 && wasteRoomArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь мусоросборных камер: {(wasteRoomCount * wasteRoomArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество парковочных мест (подземный паркинг)</label>
-                    <input
-                      type="number"
-                      value={parkingUndergroundCount}
-                      onChange={(e) => setParkingUndergroundCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 парковочного места (м²)</label>
-                    <input
-                      type="number"
-                      value={parkingUndergroundArea}
-                      onChange={(e) => setParkingUndergroundArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {parkingUndergroundCount > 0 && parkingUndergroundArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь подземного паркинга: {(parkingUndergroundCount * parkingUndergroundArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                </div>
-
-                <h3 style={{...styles.sectionTitle, fontSize: '1.2em', marginBottom: '15px', borderBottom: '2px solid #e67e22', marginTop: '20px'}}>
-                  <span>🛡️</span>
-                  Охрана и эксплуатация
-                </h3>
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество постов охраны</label>
-                    <input
-                      type="number"
-                      value={securityPostCount}
-                      onChange={(e) => setSecurityPostCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 поста охраны (м²)</label>
-                    <input
-                      type="number"
-                      value={securityPostArea}
-                      onChange={(e) => setSecurityPostArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {securityPostCount > 0 && securityPostArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь постов охраны: {(securityPostCount * securityPostArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Количество комнат отдыха персонала</label>
-                    <input
-                      type="number"
-                      value={staffRoomCount}
-                      onChange={(e) => setStaffRoomCount(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                    />
-                  </div>
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Площадь 1 комнаты отдыха персонала (м²)</label>
-                    <input
-                      type="number"
-                      value={staffRoomArea}
-                      onChange={(e) => setStaffRoomArea(Number(e.target.value))}
-                      style={styles.input}
-                      min="0"
-                      step="0.1"
-                    />
-                    {staffRoomCount > 0 && staffRoomArea > 0 && (
-                      <small style={{display: 'block', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                        Общая площадь комнат отдыха персонала: {(staffRoomCount * staffRoomArea).toFixed(1)} м²
-                      </small>
-                    )}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div style={styles.inputGroup}>
-                <label style={styles.label}>Количество помещений</label>
-                <input
-                  type="number"
-                  value={rooms}
-                  onChange={(e) => setRooms(Number(e.target.value))}
-                  style={styles.input}
-                />
               </div>
-            )}
 
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Высота потолков (м)</label>
-              <input 
-                type="number" 
-                step="0.1" 
-                value={height} 
-                onChange={(e) => setHeight(Number(e.target.value))}
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Тип помещения</label>
-              <select
-                value={buildingType}
-                onChange={(e) => setBuildingType(e.target.value)}
-                style={styles.input}
-              >
-                <optgroup label="🏠 Жилые помещения">
-                  <option value="residential_apartment">Квартиры жилого комплекса</option>
-                </optgroup>
-
-                <optgroup label="🚗 Хранение и парковка">
-                  <option value="parking_underground">Подземный паркинг (Ф5.2)</option>
-                  <option value="storage_individual">Индивидуальные кладовые</option>
-                  <option value="waste_room">Мусоросборная камера</option>
-                </optgroup>
-
-                <optgroup label="⚙️ Технические/инженерные">
-                  <option value="tech_ventilation">Венткамеры</option>
-                  <option value="tech_heating">ИТП (тепловой пункт)</option>
-                  <option value="tech_pumping">Насосная станция</option>
-                  <option value="tech_transformer">Трансформаторная подстанция</option>
-                  <option value="tech_electrical">Электрощитовые</option>
-                  <option value="tech_telecom">Слаботочные системы (СС)</option>
-                  <option value="tech_water">Водомерные узлы</option>
-                  <option value="tech_floor">Технические этажи/пространства</option>
-                </optgroup>
-
-                <optgroup label="🛡️ Охрана и эксплуатация">
-                  <option value="security_post">Пост охраны</option>
-                  <option value="staff_room">Комната отдыха персонала</option>
-                </optgroup>
-
-                <optgroup label="📋 Стандартные типы">
-                  <option value="office">Офисное здание</option>
-                  <option value="warehouse">Складское помещение</option>
-                  <option value="industrial">Производственное</option>
-                  <option value="commercial">Торговое</option>
-                </optgroup>
-              </select>
-            </div>
-          </div>
-
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>
-              <span>⚙️</span>
-              Технические параметры
-            </h2>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>
-                Площадь покрытия 1 датчика (м²)
-                <small style={{display: 'block', fontWeight: 'normal', color: '#666', fontSize: '0.8em', marginTop: '4px'}}>
-                  Базовая площадь для расчета. Автоматически корректируется по СП 5.13130.2009
-                </small>
-              </label>
-              <input
-                type="number"
-                value={detectorCoverage}
-                onChange={(e) => setDetectorCoverage(Number(e.target.value))}
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Расстояние между ИПР (м)</label>
-              <input 
-                type="number" 
-                value={manualCallDistance} 
-                onChange={(e) => setManualCallDistance(Number(e.target.value))}
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Радиус действия оповещателя (м)</label>
-              <input 
-                type="number" 
-                value={sounderCoverage} 
-                onChange={(e) => setSounderCoverage(Number(e.target.value))}
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Запас кабеля (%)</label>
-              <input 
-                type="number" 
-                value={cableReserve} 
-                onChange={(e) => setCableReserve(Number(e.target.value))}
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Размер зоны (м²)</label>
-              <input 
-                type="number" 
-                value={zoneSize} 
-                onChange={(e) => setZoneSize(Number(e.target.value))}
-                style={styles.input}
-              />
-            </div>
-
-            <button style={styles.calculateBtn} onClick={calculateEquipment}>
-              🧮 Рассчитать оборудование
-            </button>
-          </div>
-
-          {results && (
-            <div style={styles.results}>
-              <h2 style={styles.sectionTitle}>
-                <span>📊</span>
-                Результаты расчёта
-              </h2>
-              
-              <div style={styles.resultsGrid}>
-                <div style={styles.resultCard}>
-                  <h3 style={styles.resultCardTitle}>🔍 Датчики пожарной сигнализации</h3>
-                  <div style={styles.resultItem}>
-                    <span>Извещатель дымовой ИП 212-64-R3 W2.02 Rubezh:</span>
-                    <span style={styles.resultValue}>{results.smokeDetectors} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Извещатель тепловой (аналогичный модели):</span>
-                    <span style={styles.resultValue}>{results.heatDetectors} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Общее количество датчиков:</span>
-                    <span style={styles.resultValue}>{results.totalDetectors} шт.</span>
-                  </div>
-                </div>
-
-                <div style={styles.resultCard}>
-                  <h3 style={styles.resultCardTitle}>🚨 Устройства управления и оповещения</h3>
-                  <div style={styles.resultItem}>
-                    <span>ППКОП 011249-2-1 "Рубеж-2ОП" прот.R3:</span>
-                    <span style={styles.resultValue}>{results.controlPanels} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Извещатель ручной пожарный АМ-4 прот. R3:</span>
-                    <span style={styles.resultValue}>{results.manualCallPoints} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Оповещатель ОПОП 124-R3 (светозвуковой):</span>
-                    <span style={styles.resultValue}>{results.sounders} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Оповещатель световой МАЯК-24-СТ:</span>
-                    <span style={styles.resultValue}>{results.beacons} шт.</span>
-                  </div>
-                </div>
-
-                <div style={styles.resultCard}>
-                  <h3 style={styles.resultCardTitle}>🔌 Кабельная продукция</h3>
-                  <div style={styles.resultItem}>
-                    <span>КСРЭПнг(А)-FRHF 1х2х0.97мм (шлейфы):</span>
-                    <span style={styles.resultValue}>{results.loopCable} м</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>КПРПГнг(А)-FRHF 3х1.50 (питание):</span>
-                    <span style={styles.resultValue}>{results.powerCable} м</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>КПСнг(А)-FRHF 1х2х1.5 (оповещение):</span>
-                    <span style={styles.resultValue}>{results.sounderCable} м</span>
-                  </div>
-                </div>
-
-                <div style={styles.resultCard}>
-                  <h3 style={styles.resultCardTitle}>💰 Дополнительное оборудование</h3>
-                  <div style={styles.resultItem}>
-                    <span>ИВЭПР 24/2,5 RS-R3 (источники питания):</span>
-                    <span style={styles.resultValue}>{results.powerSupplies} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Аккумуляторы 12В 7Ач (резерв):</span>
-                    <span style={styles.resultValue}>{results.batteries} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Релейные модули РМ-1/РМ-4-R3:</span>
-                    <span style={styles.resultValue}>{results.relayModules} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Метка адресная АМ-1-R3 Rubezh:</span>
-                    <span style={styles.resultValue}>{results.boxes} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Изолятор шлейфа ИЗ-1Б-R3:</span>
-                    <span style={styles.resultValue}>{Math.ceil(results.zones/2)} шт.</span>
-                  </div>
-                </div>
-
-                <div style={styles.resultCard}>
-                  <h3 style={styles.resultCardTitle}>🔧 Монтажные материалы</h3>
-                  <div style={styles.resultItem}>
-                    <span>Труба гофрированная ПВХ d20мм:</span>
-                    <span style={styles.resultValue}>{Math.ceil(results.totalDetectors * 10)} м</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Скоба металлическая СМО 19-26:</span>
-                    <span style={styles.resultValue}>{Math.ceil(results.totalDetectors * 15)} шт.</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Анкер-клин 6х60мм металлический:</span>
-                    <span style={styles.resultValue}>{Math.ceil(results.totalDetectors * 8)} шт.</span>
-                  </div>
-                </div>
-
-                <div style={styles.resultCard}>
-                  <h3 style={styles.resultCardTitle}>🏢 Площади объекта</h3>
-                  <div style={styles.resultItem}>
-                    <span>Надземная часть:</span>
-                    <span style={styles.resultValue}>{results.aboveGroundArea} м²</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Подземная парковка:</span>
-                    <span style={styles.resultValue}>{results.undergroundArea} м²</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Общая площадь здания:</span>
-                    <span style={styles.resultValue}>{results.totalArea} м²</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Общее количество квартир:</span>
-                    <span style={styles.resultValue}>{calculatedApartmentsCount} шт.</span>
-                  </div>
-                  {useDetailedApartments ? (
-                    <>
-                      {apartment1Room > 0 && <div style={styles.resultItem}>
-                        <span>1-комнатные квартиры:</span>
-                        <span style={styles.resultValue}>{apartment1Room} шт. ({apartment1Room} комнат)</span>
-                      </div>}
-                      {apartment2Room > 0 && <div style={styles.resultItem}>
-                        <span>2-комнатные квартиры:</span>
-                        <span style={styles.resultValue}>{apartment2Room} шт. ({apartment2Room * 2} комнат)</span>
-                      </div>}
-                      {apartment3Room > 0 && <div style={styles.resultItem}>
-                        <span>3-комнатные квартиры:</span>
-                        <span style={styles.resultValue}>{apartment3Room} шт. ({apartment3Room * 3} комнат)</span>
-                      </div>}
-                      {apartment4Room > 0 && <div style={styles.resultItem}>
-                        <span>4-комнатные квартиры:</span>
-                        <span style={styles.resultValue}>{apartment4Room} шт. ({apartment4Room * 4} комнат)</span>
-                      </div>}
-                      {apartment5Room > 0 && <div style={styles.resultItem}>
-                        <span>5-комнатные квартиры:</span>
-                        <span style={styles.resultValue}>{apartment5Room} шт. ({apartment5Room * 5} комнат)</span>
-                      </div>}
-                      {apartment6Room > 0 && <div style={styles.resultItem}>
-                        <span>6-комнатные квартиры:</span>
-                        <span style={styles.resultValue}>{apartment6Room} шт. ({apartment6Room * 6} комнат)</span>
-                      </div>}
-                      {apartment7Room > 0 && <div style={styles.resultItem}>
-                        <span>7-комнатные квартиры:</span>
-                        <span style={styles.resultValue}>{apartment7Room} шт. ({apartment7Room * 7} комнат)</span>
-                      </div>}
-                      <div style={styles.resultItem}>
-                        <span>Общее количество комнат:</span>
-                        <span style={styles.resultValue}>{apartment1Room * 1 + apartment2Room * 2 + apartment3Room * 3 + apartment4Room * 4 + apartment5Room * 5 + apartment6Room * 6 + apartment7Room * 7} шт.</span>
-                      </div>
-                      <div style={styles.resultItem}>
-                        <span>Средняя комнатность:</span>
-                        <span style={styles.resultValue}>{averageRoomsPerApartment.toFixed(1)} комнат/квартира</span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div style={styles.resultItem}>
-                        <span>Средняя комнатность квартир:</span>
-                        <span style={styles.resultValue}>{averageRoomsPerApartment}-комнатные</span>
-                      </div>
-                      <div style={styles.resultItem}>
-                        <span>Общее количество комнат:</span>
-                        <span style={styles.resultValue}>{Math.ceil(calculatedApartmentsCount * averageRoomsPerApartment)} шт.</span>
-                      </div>
-                    </>
-                  )}
-                  <div style={styles.resultItem}>
-                    <span>Этажи надземной части:</span>
-                    <span style={styles.resultValue}>{aboveGroundFloors} этажей</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Этажи подземной части:</span>
-                    <span style={styles.resultValue}>{undergroundFloors} этажей</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Общее количество этажей:</span>
-                    <span style={styles.resultValue}>{totalFloors} этажей</span>
-                  </div>
-                  {useDetailedRooms && (
-                    <>
-                      <div style={styles.resultItem}>
-                        <span>Общее количество помещений (детально):</span>
-                        <span style={styles.resultValue}>{results.calculatedRoomsCount} шт.</span>
-                      </div>
-                      {results.calculatedRoomsArea > 0 && (
-                        <div style={styles.resultItem}>
-                          <span>Общая площадь помещений (детально):</span>
-                          <span style={styles.resultValue}>{results.calculatedRoomsArea.toFixed(1)} м²</span>
-                        </div>
-                      )}
-                    </>
+              {/* Настройки помещений */}
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={useDetailedRooms}
+                      onChange={(e) => setUseDetailedRooms(e.target.checked)}
+                      style={{marginRight: '10px'}}
+                    />
+                    Детализированный подсчёт по типам помещений
+                  </label>
+                  {!useDetailedRooms && (
+                    <input
+                      type="number"
+                      value={rooms}
+                      onChange={(e) => setRooms(Number(e.target.value))}
+                      className="portal-input"
+                      placeholder="Общее количество помещений"
+                      style={{marginTop: '10px'}}
+                    />
                   )}
                 </div>
 
                 {useDetailedRooms && (
-                  <div style={styles.resultCard}>
-                    <h3 style={styles.resultCardTitle}>🏠 Детализация по типам помещений</h3>
-
-                    {(stairwellCount > 0 || elevatorHallCount > 0 || commonCorridorCount > 0) && (
-                      <div style={{marginBottom: '15px'}}>
-                        <strong style={{color: '#27ae60', fontSize: '1.1em'}}>Общие помещения:</strong>
-                        {stairwellCount > 0 && <div style={styles.resultItem}>
-                          <span>Лестничные клетки:</span>
-                          <span style={styles.resultValue}>{stairwellCount * totalFloors} шт. ({stairwellArea > 0 ? `${stairwellArea}м² × ${stairwellCount} × ${totalFloors}эт = ${(stairwellCount * totalFloors * stairwellArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {elevatorHallCount > 0 && <div style={styles.resultItem}>
-                          <span>Лифтовые холлы:</span>
-                          <span style={styles.resultValue}>{elevatorHallCount * totalFloors} шт. ({elevatorHallArea > 0 ? `${elevatorHallArea}м² × ${elevatorHallCount} × ${totalFloors}эт = ${(elevatorHallCount * totalFloors * elevatorHallArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {commonCorridorCount > 0 && <div style={styles.resultItem}>
-                          <span>Общие коридоры:</span>
-                          <span style={styles.resultValue}>{commonCorridorCount * totalFloors} шт. ({commonCorridorArea > 0 ? `${commonCorridorArea}м² × ${commonCorridorCount} × ${totalFloors}эт = ${(commonCorridorCount * totalFloors * commonCorridorArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                      </div>
-                    )}
-
-                    {(techVentilationCount > 0 || techElectricalCount > 0 || techHeatingCount > 0 || techPumpingCount > 0 || techTransformerCount > 0 || techTelecomCount > 0 || techWaterCount > 0 || techFloorCount > 0) && (
-                      <div style={{marginBottom: '15px'}}>
-                        <strong style={{color: '#f39c12', fontSize: '1.1em'}}>Технические помещения:</strong>
-                        {techVentilationCount > 0 && <div style={styles.resultItem}>
-                          <span>Венткамеры (тепловые датчики):</span>
-                          <span style={styles.resultValue}>{techVentilationCount} шт. ({techVentilationArea > 0 ? `${techVentilationArea}м² × ${techVentilationCount} = ${(techVentilationCount * techVentilationArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {techElectricalCount > 0 && <div style={styles.resultItem}>
-                          <span>Электрощитовые (тепловые датчики):</span>
-                          <span style={styles.resultValue}>{techElectricalCount} шт. ({techElectricalArea > 0 ? `${techElectricalArea}м² × ${techElectricalCount} = ${(techElectricalCount * techElectricalArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {techHeatingCount > 0 && <div style={styles.resultItem}>
-                          <span>Тепловые пункты ИТП (тепловые датчики):</span>
-                          <span style={styles.resultValue}>{techHeatingCount} шт. ({techHeatingArea > 0 ? `${techHeatingArea}м² × ${techHeatingCount} = ${(techHeatingCount * techHeatingArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {techPumpingCount > 0 && <div style={styles.resultItem}>
-                          <span>Насосные станции (тепловые датчики):</span>
-                          <span style={styles.resultValue}>{techPumpingCount} шт. ({techPumpingArea > 0 ? `${techPumpingArea}м² × ${techPumpingCount} = ${(techPumpingCount * techPumpingArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {techTransformerCount > 0 && <div style={styles.resultItem}>
-                          <span>Трансформаторные подстанции (тепловые датчики):</span>
-                          <span style={styles.resultValue}>{techTransformerCount} шт. ({techTransformerArea > 0 ? `${techTransformerArea}м² × ${techTransformerCount} = ${(techTransformerCount * techTransformerArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {techTelecomCount > 0 && <div style={styles.resultItem}>
-                          <span>Слаботочные системы (дымовые датчики):</span>
-                          <span style={styles.resultValue}>{techTelecomCount} шт. ({techTelecomArea > 0 ? `${techTelecomArea}м² × ${techTelecomCount} = ${(techTelecomCount * techTelecomArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {techWaterCount > 0 && <div style={styles.resultItem}>
-                          <span>Водомерные узлы (тепловые датчики):</span>
-                          <span style={styles.resultValue}>{techWaterCount} шт. ({techWaterArea > 0 ? `${techWaterArea}м² × ${techWaterCount} = ${(techWaterCount * techWaterArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {techFloorCount > 0 && <div style={styles.resultItem}>
-                          <span>Технические этажи/пространства (дымовые датчики):</span>
-                          <span style={styles.resultValue}>{techFloorCount} шт. ({techFloorArea > 0 ? `${techFloorArea}м² × ${techFloorCount} = ${(techFloorCount * techFloorArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                      </div>
-                    )}
-
-                    {(storageCount > 0 || wasteRoomCount > 0 || parkingUndergroundCount > 0) && (
-                      <div style={{marginBottom: '15px'}}>
-                        <strong style={{color: '#9b59b6', fontSize: '1.1em'}}>Хранение и парковка:</strong>
-                        {storageCount > 0 && <div style={styles.resultItem}>
-                          <span>Индивидуальные кладовые (дымовые датчики):</span>
-                          <span style={styles.resultValue}>{storageCount} шт. ({storageArea > 0 ? `${storageArea}м² × ${storageCount} = ${(storageCount * storageArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {wasteRoomCount > 0 && <div style={styles.resultItem}>
-                          <span>Мусоросборные камеры (тепловые датчики):</span>
-                          <span style={styles.resultValue}>{wasteRoomCount} шт. ({wasteRoomArea > 0 ? `${wasteRoomArea}м² × ${wasteRoomCount} = ${(wasteRoomCount * wasteRoomArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {parkingUndergroundCount > 0 && <div style={styles.resultItem}>
-                          <span>Подземный паркинг (дымовые датчики):</span>
-                          <span style={styles.resultValue}>{parkingUndergroundCount} шт. ({parkingUndergroundArea > 0 ? `${parkingUndergroundArea}м² × ${parkingUndergroundCount} = ${(parkingUndergroundCount * parkingUndergroundArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                      </div>
-                    )}
-
-                    {(securityPostCount > 0 || staffRoomCount > 0) && (
-                      <div style={{marginBottom: '15px'}}>
-                        <strong style={{color: '#e67e22', fontSize: '1.1em'}}>Охрана и эксплуатация:</strong>
-                        {securityPostCount > 0 && <div style={styles.resultItem}>
-                          <span>Посты охраны (дымовые датчики):</span>
-                          <span style={styles.resultValue}>{securityPostCount} шт. ({securityPostArea > 0 ? `${securityPostArea}м² × ${securityPostCount} = ${(securityPostCount * securityPostArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                        {staffRoomCount > 0 && <div style={styles.resultItem}>
-                          <span>Комнаты отдыха персонала (дымовые датчики):</span>
-                          <span style={styles.resultValue}>{staffRoomCount} шт. ({staffRoomArea > 0 ? `${staffRoomArea}м² × ${staffRoomCount} = ${(staffRoomCount * staffRoomArea).toFixed(1)}м²` : 'площадь не указана'})</span>
-                        </div>}
-                      </div>
-                    )}
+                  <div className="portal-grid-item">
+                    <button
+                      onClick={() => setShowRoomsModal(true)}
+                      className="portal-button"
+                    >
+                      Настроить помещения ({calculatedRoomsCount} шт.)
+                    </button>
                   </div>
                 )}
+              </div>
+            </div>
 
-                <div style={styles.resultCard}>
-                  <h3 style={styles.resultCardTitle}>📊 Параметры системы R3-РУБЕЖ-2ОП</h3>
-                  <div style={styles.resultItem}>
-                    <span>Расчётное количество зон (ЗКПС):</span>
-                    <span style={styles.resultValue}>{results.zones} / {results.maxZonesPerPanel} макс.</span>
+            {/* Карточка настроек системы */}
+            <div className="portal-card">
+              <h2 className="portal-subtitle">Настройки системы АПС</h2>
+
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>Высота потолков (м)</label>
+                  <input
+                    type="number"
+                    value={height}
+                    onChange={(e) => setHeight(Number(e.target.value))}
+                    className="portal-input"
+                    step="0.1"
+                    min="2.0"
+                  />
+                </div>
+
+                <div className="portal-grid-item">
+                  <label>Тип здания</label>
+                  <select
+                    value={buildingType}
+                    onChange={(e) => setBuildingType(e.target.value)}
+                    className="portal-input"
+                  >
+                    <option value="residential_apartment">Жилой дом (квартиры)</option>
+                    <option value="office">Офисное здание</option>
+                    <option value="warehouse">Складское помещение</option>
+                    <option value="industrial">Производственное здание</option>
+                    <option value="commercial">Торговое помещение</option>
+                    <option value="parking_underground">Подземная парковка</option>
+                  </select>
+                </div>
+
+                <div className="portal-grid-item">
+                  <label>Покрытие датчика (м²)</label>
+                  <input
+                    type="number"
+                    value={detectorCoverage}
+                    onChange={(e) => setDetectorCoverage(Number(e.target.value))}
+                    className="portal-input"
+                    min="1"
+                  />
+                </div>
+
+                <div className="portal-grid-item">
+                  <label>Расстояние между ИПР (м)</label>
+                  <input
+                    type="number"
+                    value={manualCallDistance}
+                    onChange={(e) => setManualCallDistance(Number(e.target.value))}
+                    className="portal-input"
+                    min="1"
+                  />
+                </div>
+
+                <div className="portal-grid-item">
+                  <label>Радиус оповещателя (м)</label>
+                  <input
+                    type="number"
+                    value={sounderCoverage}
+                    onChange={(e) => setSounderCoverage(Number(e.target.value))}
+                    className="portal-input"
+                    min="1"
+                  />
+                </div>
+
+                <div className="portal-grid-item">
+                  <label>Запас кабеля (%)</label>
+                  <input
+                    type="number"
+                    value={cableReserve}
+                    onChange={(e) => setCableReserve(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    max="50"
+                  />
+                </div>
+
+                <div className="portal-grid-item">
+                  <label>Размер зоны (м²)</label>
+                  <input
+                    type="number"
+                    value={zoneSize}
+                    onChange={(e) => setZoneSize(Number(e.target.value))}
+                    className="portal-input"
+                    min="100"
+                  />
+                </div>
+              </div>
+
+              <div style={{textAlign: 'center', marginTop: '2rem'}}>
+                <button
+                  onClick={calculateEquipment}
+                  className="portal-button pulse"
+                  style={{fontSize: '1.1em', padding: '1.2rem 3rem'}}
+                >
+                  🔥 Рассчитать оборудование
+                </button>
+              </div>
+            </div>
+
+            {/* Результаты расчетов */}
+            {results && (
+              <div className="portal-card">
+                <h2 className="portal-subtitle">Результаты расчёта</h2>
+
+                <div className="portal-grid">
+                  {/* Извещатели */}
+                  <div className="portal-grid-item portal-glow">
+                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>🔍 Пожарные извещатели</h4>
+                    <p><strong>Дымовые:</strong> {results.smokeDetectors} шт.</p>
+                    <p><strong>Тепловые:</strong> {results.heatDetectors} шт.</p>
+                    <p><strong>Всего:</strong> {results.totalDetectors} шт.</p>
+                    <p><strong>Алгоритм:</strong> {results.algorithmType}</p>
                   </div>
-                  <div style={styles.resultItem}>
-                    <span>Длина АЛС (адресных линий связи):</span>
-                    <span style={styles.resultValue}>{results.alsLength} / 3000м макс.</span>
+
+                  {/* Управление */}
+                  <div className="portal-grid-item portal-glow">
+                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>🖥️ Приборы управления</h4>
+                    <p><strong>ППКОП R3-РУБЕЖ-2ОП:</strong> {results.controlPanels} шт.</p>
+                    <p><strong>Зон контроля:</strong> {results.zones} шт.</p>
+                    <p><strong>Макс. зон на прибор:</strong> {results.maxZonesPerPanel}</p>
+                    <p><strong>Релейные модули:</strong> {results.relayModules} шт.</p>
                   </div>
-                  <div style={styles.resultItem}>
-                    <span>Количество АЛС на прибор:</span>
-                    <span style={styles.resultValue}>2 линии × 3000м</span>
+
+                  {/* Ручные извещатели */}
+                  <div className="portal-grid-item portal-glow">
+                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>🚨 Ручные извещатели</h4>
+                    <p><strong>ИПР 513-3AM:</strong> {results.manualCallPoints} шт.</p>
+                    <p><strong>Алгоритм:</strong> A (одноразовое срабатывание)</p>
                   </div>
-                  <div style={styles.resultItem}>
-                    <span>Площадь покрытия 1 датчика (расч.):</span>
-                    <span style={styles.resultValue}>{results.adjustedDetectorCoverage?.toFixed(1) || detectorCoverage} м²</span>
+
+                  {/* Оповещение */}
+                  <div className="portal-grid-item portal-glow">
+                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>📢 Система оповещения</h4>
+                    <p><strong>Звуковые оповещатели:</strong> {results.sounders} шт.</p>
+                    <p><strong>Световые оповещатели:</strong> {results.beacons} шт.</p>
+                    <p><strong>Тип СОУЭ:</strong> {results.soueType}</p>
+                  </div>
+
+                  {/* Питание */}
+                  <div className="portal-grid-item portal-glow">
+                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>⚡ Электропитание</h4>
+                    <p><strong>ИВЭПР 24/2,5 RS-R3:</strong> {results.powerSupplies} шт.</p>
+                    <p><strong>Аккумуляторы 12В 7Ач:</strong> {results.batteries} шт.</p>
+                  </div>
+
+                  {/* Монтаж */}
+                  <div className="portal-grid-item portal-glow">
+                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>🔧 Монтажные изделия</h4>
+                    <p><strong>Монтажные коробки:</strong> {results.boxes} шт.</p>
                   </div>
                 </div>
 
-                <div style={styles.resultCard}>
-                  <h3 style={styles.resultCardTitle}>📋 Алгоритмы и типы систем</h3>
-                  <div style={styles.resultItem}>
-                    <span>Алгоритм работы датчиков:</span>
-                    <span style={styles.resultValue}>{results.algorithmType}</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Тип системы оповещения (СОУЭ):</span>
-                    <span style={styles.resultValue}>{results.soueType}</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Уровень звукового давления:</span>
-                    <span style={styles.resultValue}>75-120 дБА</span>
-                  </div>
-                </div>
-
-                <div style={styles.resultCard}>
-                  <h3 style={styles.resultCardTitle}>📖 Нормативная база (СП 5.13130.2009)</h3>
-                  <div style={styles.resultItem}>
-                    <span>Максимальная площадь на 1 дым. извещатель:</span>
-                    <span style={styles.resultValue}>85 м² (при h ≤ 3.5м)</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Расстояние между извещателями:</span>
-                    <span style={styles.resultValue}>≤ 9 м</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Расстояние до стен:</span>
-                    <span style={styles.resultValue}>≤ 4.5 м</span>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>Корректировка по высоте:</span>
-                    <span style={styles.resultValue}>
-                      {height > 3.5 ?
-                        `Применена (${height}м > 3.5м)` :
-                        'Не требуется'
-                      }
-                    </span>
+                {/* Кабельная продукция */}
+                <div className="portal-card" style={{marginTop: '2rem', background: 'rgba(255, 255, 255, 0.05)'}}>
+                  <h3 style={{color: 'var(--accent-red)', marginBottom: '1rem'}}>📡 Кабельная продукция</h3>
+                  <div className="portal-grid">
+                    <div className="portal-grid-item">
+                      <p><strong>КСРЭПнг(А)-FRHF 1×2×0.8 (АЛС):</strong> {results.loopCable} м</p>
+                      <small style={{opacity: 0.8}}>Максимальная длина АЛС: {results.alsLength} м</small>
+                    </div>
+                    <div className="portal-grid-item">
+                      <p><strong>КПРПГнг(А)-FRHF 3×1.5 (питание):</strong> {results.powerCable} м</p>
+                    </div>
+                    <div className="portal-grid-item">
+                      <p><strong>КПСнг(А)-FRHF 2×0.75 (оповещение):</strong> {results.sounderCable} м</p>
+                    </div>
                   </div>
                 </div>
               </div>
+            )}
+          </>
+        )}
+
+        {/* Другие секции портала */}
+        {activeSection === 'history' && (
+          <div className="portal-card">
+            <h2 className="portal-subtitle">История расчетов</h2>
+            <p style={{color: 'var(--text-white)', textAlign: 'center', padding: '2rem'}}>
+              История расчетов будет доступна в следующих версиях портала.
+            </p>
+          </div>
+        )}
+
+        {activeSection === 'settings' && (
+          <div className="portal-card">
+            <h2 className="portal-subtitle">Настройки портала</h2>
+            <p style={{color: 'var(--text-white)', textAlign: 'center', padding: '2rem'}}>
+              Настройки портала будут доступны в следующих версиях.
+            </p>
+          </div>
+        )}
+
+        {activeSection === 'help' && (
+          <div className="portal-card">
+            <h2 className="portal-subtitle">Справочная информация</h2>
+            <div style={{color: 'var(--text-white)', padding: '1rem'}}>
+              <h4>Нормативные документы:</h4>
+              <ul>
+                <li>СП 5.13130.2009 "Системы противопожарной защиты"</li>
+                <li>ГОСТ Р 53325-2012 "Техника пожарная"</li>
+                <li>НПБ 88-2001* "Установки пожаротушения и сигнализации"</li>
+              </ul>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Модальное окно для выбора квартир */}
+      {/* Модальное окно настройки квартир */}
       {showApartmentsModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowApartmentsModal(false)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h2 style={styles.modalTitle}>🏠 Настройка квартир по комнатности</h2>
-            <p style={styles.modalSubtitle}>Укажите количество квартир каждого типа</p>
+        <div className={`portal-modal ${showApartmentsModal ? 'active' : ''}`}>
+          <div className="portal-modal-content">
+            <h3 style={{color: 'var(--text-white)', marginBottom: '1.5rem'}}>Настройка количества квартир по комнатности</h3>
 
-            <div style={styles.modalGrid}>
-              <div style={styles.apartmentInput}>
-                <label style={styles.modalLabel}>1-комнатные квартиры</label>
+            <div className="portal-grid">
+              <div className="portal-grid-item">
+                <label>1-комнатные квартиры</label>
                 <input
                   type="number"
                   value={apartment1Room}
                   onChange={(e) => setApartment1Room(Number(e.target.value))}
-                  style={styles.modalInput}
+                  className="portal-input"
                   min="0"
                 />
               </div>
-
-              <div style={styles.apartmentInput}>
-                <label style={styles.modalLabel}>2-комнатные квартиры</label>
+              <div className="portal-grid-item">
+                <label>2-комнатные квартиры</label>
                 <input
                   type="number"
                   value={apartment2Room}
                   onChange={(e) => setApartment2Room(Number(e.target.value))}
-                  style={styles.modalInput}
+                  className="portal-input"
                   min="0"
                 />
               </div>
-
-              <div style={styles.apartmentInput}>
-                <label style={styles.modalLabel}>3-комнатные квартиры</label>
+              <div className="portal-grid-item">
+                <label>3-комнатные квартиры</label>
                 <input
                   type="number"
                   value={apartment3Room}
                   onChange={(e) => setApartment3Room(Number(e.target.value))}
-                  style={styles.modalInput}
+                  className="portal-input"
                   min="0"
                 />
               </div>
-
-              <div style={styles.apartmentInput}>
-                <label style={styles.modalLabel}>4-комнатные квартиры</label>
+              <div className="portal-grid-item">
+                <label>4-комнатные квартиры</label>
                 <input
                   type="number"
                   value={apartment4Room}
                   onChange={(e) => setApartment4Room(Number(e.target.value))}
-                  style={styles.modalInput}
+                  className="portal-input"
                   min="0"
                 />
               </div>
-
-              <div style={styles.apartmentInput}>
-                <label style={styles.modalLabel}>5-комнатных квартир</label>
+              <div className="portal-grid-item">
+                <label>5-комнатные квартиры</label>
                 <input
                   type="number"
                   value={apartment5Room}
                   onChange={(e) => setApartment5Room(Number(e.target.value))}
-                  style={styles.modalInput}
+                  className="portal-input"
                   min="0"
                 />
               </div>
-
-              <div style={styles.apartmentInput}>
-                <label style={styles.modalLabel}>6-комнатных квартир</label>
+              <div className="portal-grid-item">
+                <label>6-комнатные квартиры</label>
                 <input
                   type="number"
                   value={apartment6Room}
                   onChange={(e) => setApartment6Room(Number(e.target.value))}
-                  style={styles.modalInput}
+                  className="portal-input"
                   min="0"
                 />
               </div>
-
-              <div style={styles.apartmentInput}>
-                <label style={styles.modalLabel}>7-комнатных квартир</label>
+              <div className="portal-grid-item">
+                <label>7-комнатные квартиры</label>
                 <input
                   type="number"
                   value={apartment7Room}
                   onChange={(e) => setApartment7Room(Number(e.target.value))}
-                  style={styles.modalInput}
+                  className="portal-input"
                   min="0"
                 />
               </div>
             </div>
 
-            <div style={styles.modalSummary}>
-              <div style={styles.summaryItem}>
-                <strong>Общее количество квартир: {calculatedApartmentsCount} шт.</strong>
-              </div>
-              <div style={styles.summaryItem}>
-                <strong>Общее количество комнат: {apartment1Room * 1 + apartment2Room * 2 + apartment3Room * 3 + apartment4Room * 4 + apartment5Room * 5 + apartment6Room * 6 + apartment7Room * 7} шт.</strong>
-              </div>
-              <div style={styles.summaryItem}>
-                Средняя комнатность: {averageRoomsPerApartment.toFixed(1)} комнат/квартира
-              </div>
+            <div style={{textAlign: 'center', marginTop: '2rem', color: 'var(--text-white)'}}>
+              <p><strong>Общее количество квартир: {calculatedApartmentsCount}</strong></p>
+              {calculatedApartmentsCount > 0 && (
+                <p>Средняя комнатность: {averageRoomsPerApartment.toFixed(1)} комнат</p>
+              )}
             </div>
 
-            <div style={styles.modalButtons}>
+            <div style={{textAlign: 'center', marginTop: '2rem'}}>
               <button
                 onClick={() => setShowApartmentsModal(false)}
-                style={styles.modalCloseButton}
+                className="portal-button"
               >
-                ✅ Применить
+                ✅ Применить настройки
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Модальное окно для выбора помещений */}
+      {/* Модальное окно настройки помещений */}
       {showRoomsModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowRoomsModal(false)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h2 style={styles.modalTitle}>🏗️ Настройка помещений по типам</h2>
-            <p style={styles.modalSubtitle}>Укажите количество и площадь помещений каждого типа</p>
+        <div className={`portal-modal ${showRoomsModal ? 'active' : ''}`}>
+          <div className="portal-modal-content">
+            <h3 style={{color: 'var(--text-white)', marginBottom: '1.5rem'}}>Детализированный подсчёт помещений</h3>
 
-            <div style={styles.modalGrid}>
-              {/* Здесь будет содержимое для выбора помещений */}
-              <div style={{textAlign: 'center', padding: '20px'}}>
-                <p>Модальное окно для помещений будет добавлено далее</p>
+            <div style={{maxHeight: '60vh', overflowY: 'auto'}}>
+              {/* Общие помещения */}
+              <h4 style={{color: 'var(--accent-orange)', marginTop: '1.5rem'}}>Общие помещения</h4>
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>Лестничные клетки на 1 этаже</label>
+                  <input
+                    type="number"
+                    value={stairwellCount}
+                    onChange={(e) => setStairwellCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь 1 лестничной клетки (м²)</label>
+                  <input
+                    type="number"
+                    value={stairwellArea}
+                    onChange={(e) => setStairwellArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Лифтовые холлы на 1 этаже</label>
+                  <input
+                    type="number"
+                    value={elevatorHallCount}
+                    onChange={(e) => setElevatorHallCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь 1 лифтового холла (м²)</label>
+                  <input
+                    type="number"
+                    value={elevatorHallArea}
+                    onChange={(e) => setElevatorHallArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+              </div>
+
+              {/* Технические помещения */}
+              <h4 style={{color: 'var(--accent-orange)', marginTop: '1.5rem'}}>Технические помещения</h4>
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>Венткамеры</label>
+                  <input
+                    type="number"
+                    value={techVentilationCount}
+                    onChange={(e) => setTechVentilationCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={techVentilationArea}
+                    onChange={(e) => setTechVentilationArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Электрощитовые</label>
+                  <input
+                    type="number"
+                    value={techElectricalCount}
+                    onChange={(e) => setTechElectricalCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={techElectricalArea}
+                    onChange={(e) => setTechElectricalArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Теплопункты</label>
+                  <input
+                    type="number"
+                    value={techHeatingCount}
+                    onChange={(e) => setTechHeatingCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={techHeatingArea}
+                    onChange={(e) => setTechHeatingArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Насосные станции</label>
+                  <input
+                    type="number"
+                    value={techPumpingCount}
+                    onChange={(e) => setTechPumpingCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={techPumpingArea}
+                    onChange={(e) => setTechPumpingArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Трансформаторные</label>
+                  <input
+                    type="number"
+                    value={techTransformerCount}
+                    onChange={(e) => setTechTransformerCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={techTransformerArea}
+                    onChange={(e) => setTechTransformerArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Телекоммуникационные</label>
+                  <input
+                    type="number"
+                    value={techTelecomCount}
+                    onChange={(e) => setTechTelecomCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={techTelecomArea}
+                    onChange={(e) => setTechTelecomArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Водопроводные узлы</label>
+                  <input
+                    type="number"
+                    value={techWaterCount}
+                    onChange={(e) => setTechWaterCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={techWaterArea}
+                    onChange={(e) => setTechWaterArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Технические этажи</label>
+                  <input
+                    type="number"
+                    value={techFloorCount}
+                    onChange={(e) => setTechFloorCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={techFloorArea}
+                    onChange={(e) => setTechFloorArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+              </div>
+
+              {/* Хранение и парковка */}
+              <h4 style={{color: 'var(--accent-orange)', marginTop: '1.5rem'}}>Хранение и парковка</h4>
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>Кладовые</label>
+                  <input
+                    type="number"
+                    value={storageCount}
+                    onChange={(e) => setStorageCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={storageArea}
+                    onChange={(e) => setStorageArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Мусорные камеры</label>
+                  <input
+                    type="number"
+                    value={wasteRoomCount}
+                    onChange={(e) => setWasteRoomCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={wasteRoomArea}
+                    onChange={(e) => setWasteRoomArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Подземные парковки</label>
+                  <input
+                    type="number"
+                    value={parkingUndergroundCount}
+                    onChange={(e) => setParkingUndergroundCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={parkingUndergroundArea}
+                    onChange={(e) => setParkingUndergroundArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+              </div>
+
+              {/* Общие коридоры */}
+              <h4 style={{color: 'var(--accent-orange)', marginTop: '1.5rem'}}>Общие коридоры</h4>
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>Коридоры на 1 этаже</label>
+                  <input
+                    type="number"
+                    value={commonCorridorCount}
+                    onChange={(e) => setCommonCorridorCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь 1 коридора (м²)</label>
+                  <input
+                    type="number"
+                    value={commonCorridorArea}
+                    onChange={(e) => setCommonCorridorArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+              </div>
+
+              {/* Охрана и эксплуатация */}
+              <h4 style={{color: 'var(--accent-orange)', marginTop: '1.5rem'}}>Охрана и эксплуатация</h4>
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>Посты охраны</label>
+                  <input
+                    type="number"
+                    value={securityPostCount}
+                    onChange={(e) => setSecurityPostCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={securityPostArea}
+                    onChange={(e) => setSecurityPostArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="portal-grid-item">
+                  <label>Комнаты персонала</label>
+                  <input
+                    type="number"
+                    value={staffRoomCount}
+                    onChange={(e) => setStaffRoomCount(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                  />
+                  <label style={{marginTop: '0.5rem'}}>Площадь (м²)</label>
+                  <input
+                    type="number"
+                    value={staffRoomArea}
+                    onChange={(e) => setStaffRoomArea(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
               </div>
             </div>
 
-            <div style={styles.modalButtons}>
+            <div style={{textAlign: 'center', marginTop: '2rem', color: 'var(--text-white)'}}>
+              <p><strong>Общее количество помещений: {calculatedRoomsCount}</strong></p>
+              {calculatedRoomsArea > 0 && (
+                <p>Общая площадь помещений: {calculatedRoomsArea.toFixed(1)} м²</p>
+              )}
+            </div>
+
+            <div style={{textAlign: 'center', marginTop: '2rem'}}>
               <button
                 onClick={() => setShowRoomsModal(false)}
-                style={styles.modalCloseButton}
+                className="portal-button"
               >
-                ✅ Применить
+                ✅ Применить настройки
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Футер портала */}
+      <footer style={{
+        background: 'rgba(26, 54, 93, 0.8)',
+        color: 'var(--text-white)',
+        textAlign: 'center',
+        padding: '2rem',
+        marginTop: '3rem',
+        borderTop: '1px solid rgba(255, 107, 53, 0.2)'
+      }}>
+        <p>&copy; 2024 Портал АПС. Система расчета пожарной сигнализации</p>
+        <p style={{opacity: 0.7, fontSize: '0.9em'}}>
+          Расчеты выполняются согласно СП 5.13130.2009 и ГОСТ Р 53325-2012
+        </p>
+      </footer>
     </div>
   )
 }

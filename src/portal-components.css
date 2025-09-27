@@ -1,0 +1,503 @@
+/* ===== ДОПОЛНИТЕЛЬНЫЕ КОМПОНЕНТЫ ПОРТАЛА АПС ===== */
+
+/* ===== ИНДИКАТОРЫ СТАТУСА ===== */
+.portal-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: var(--transition-smooth);
+}
+
+.portal-status-badge.active {
+  background: rgba(72, 187, 120, 0.2);
+  color: #68d391;
+  border-color: rgba(72, 187, 120, 0.4);
+}
+
+.portal-status-badge.warning {
+  background: rgba(237, 137, 54, 0.2);
+  color: #f6ad55;
+  border-color: rgba(237, 137, 54, 0.4);
+}
+
+.portal-status-badge.error {
+  background: rgba(229, 62, 62, 0.2);
+  color: #fc8181;
+  border-color: rgba(229, 62, 62, 0.4);
+}
+
+.portal-status-badge.inactive {
+  background: rgba(160, 174, 192, 0.2);
+  color: #a0aec0;
+  border-color: rgba(160, 174, 192, 0.4);
+}
+
+/* ===== ЗАГРУЗОЧНЫЕ СПИННЕРЫ ===== */
+.portal-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top: 3px solid var(--accent-orange);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 1rem auto;
+}
+
+.portal-spinner.small {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.portal-spinner.large {
+  width: 60px;
+  height: 60px;
+  border-width: 4px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Пульсирующий загрузчик */
+.portal-pulse-loader {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.portal-pulse-dot {
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(45deg, var(--accent-orange), var(--accent-red));
+  border-radius: 50%;
+  animation: pulseDot 1.4s ease-in-out infinite both;
+}
+
+.portal-pulse-dot:nth-child(1) { animation-delay: -0.32s; }
+.portal-pulse-dot:nth-child(2) { animation-delay: -0.16s; }
+.portal-pulse-dot:nth-child(3) { animation-delay: 0; }
+
+@keyframes pulseDot {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===== АККОРДЕОН ПОРТАЛА ===== */
+.portal-accordion {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.portal-accordion-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.portal-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.portal-accordion-header {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: var(--transition-smooth);
+  font-weight: 600;
+  color: var(--text-white);
+}
+
+.portal-accordion-header:hover {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.portal-accordion-icon {
+  transition: var(--transition-smooth);
+  font-size: 1.2rem;
+}
+
+.portal-accordion-item.open .portal-accordion-icon {
+  transform: rotate(180deg);
+}
+
+.portal-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.portal-accordion-item.open .portal-accordion-content {
+  max-height: 1000px;
+}
+
+.portal-accordion-body {
+  padding: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== ВКЛАДКИ ПОРТАЛА ===== */
+.portal-tabs {
+  margin: 2rem 0;
+}
+
+.portal-tab-list {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.portal-tab-list::-webkit-scrollbar {
+  display: none;
+}
+
+.portal-tab-button {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  white-space: nowrap;
+  position: relative;
+  overflow: visible;
+}
+
+.portal-tab-button:hover {
+  color: var(--text-white);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.portal-tab-button.active {
+  color: var(--text-white);
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.portal-tab-content {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== КАРТОЧКИ СТАТИСТИКИ ===== */
+.portal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.portal-stat-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-orange), var(--accent-red));
+}
+
+.portal-stat-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 25px rgba(26, 54, 93, 0.3);
+}
+
+.portal-stat-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.portal-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent-orange);
+  margin-bottom: 0.5rem;
+}
+
+.portal-stat-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== ТОСТОВЫЕ УВЕДОМЛЕНИЯ ===== */
+.portal-toast-container {
+  position: fixed;
+  top: 100px;
+  right: 2rem;
+  z-index: 2000;
+  max-width: 400px;
+}
+
+.portal-toast {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-white);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  transform: translateX(450px);
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-toast.show {
+  transform: translateX(0);
+}
+
+.portal-toast::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-orange), var(--accent-red));
+}
+
+.portal-toast.success::before {
+  background: linear-gradient(90deg, #48bb78, #38a169);
+}
+
+.portal-toast.error::before {
+  background: linear-gradient(90deg, var(--accent-red), #c53030);
+}
+
+.portal-toast.warning::before {
+  background: linear-gradient(90deg, #ed8936, #dd6b20);
+}
+
+.portal-toast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.portal-toast-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.portal-toast-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition-smooth);
+}
+
+.portal-toast-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-white);
+}
+
+.portal-toast-body {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+}
+
+/* ===== БЕЙДЖИ И МЕТКИ ===== */
+.portal-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(10px);
+}
+
+.portal-badge.primary {
+  background: rgba(255, 107, 53, 0.2);
+  color: var(--accent-orange);
+  border: 1px solid rgba(255, 107, 53, 0.3);
+}
+
+.portal-badge.secondary {
+  background: rgba(160, 174, 192, 0.2);
+  color: #a0aec0;
+  border: 1px solid rgba(160, 174, 192, 0.3);
+}
+
+.portal-badge.success {
+  background: rgba(72, 187, 120, 0.2);
+  color: #68d391;
+  border: 1px solid rgba(72, 187, 120, 0.3);
+}
+
+.portal-badge.danger {
+  background: rgba(229, 62, 62, 0.2);
+  color: #fc8181;
+  border: 1px solid rgba(229, 62, 62, 0.3);
+}
+
+/* ===== ПОЛЗУНКИ И ПЕРЕКЛЮЧАТЕЛИ ===== */
+.portal-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  appearance: none;
+}
+
+.portal-slider:hover {
+  opacity: 1;
+}
+
+.portal-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(255, 107, 53, 0.5);
+}
+
+.portal-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 10px rgba(255, 107, 53, 0.5);
+}
+
+/* Переключатель */
+.portal-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.portal-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.portal-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: var(--transition-smooth);
+  border-radius: 34px;
+}
+
+.portal-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: var(--transition-smooth);
+  border-radius: 50%;
+}
+
+.portal-toggle input:checked + .portal-toggle-slider {
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+}
+
+.portal-toggle input:checked + .portal-toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* ===== АДАПТИВНОСТЬ КОМПОНЕНТОВ ===== */
+@media (max-width: 768px) {
+  .portal-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-tab-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .portal-toast-container {
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+
+  .portal-toast {
+    transform: translateY(-100px);
+  }
+
+  .portal-toast.show {
+    transform: translateY(0);
+  }
+}
