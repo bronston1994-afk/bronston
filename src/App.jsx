@@ -435,6 +435,12 @@ function App() {
     const avgSounderRun = Math.sqrt(area) * 0.5 // Длина линий оповещения
     const sounderCable = Math.ceil(sounders * avgSounderRun * 0.7 * cableMultiplier)
 
+    // Расчет монтажных материалов
+    const totalCableLength = loopCable + powerCable + sounderCable // Общая длина всех кабелей
+    const conduitLength = Math.ceil(totalCableLength * 0.8) // ПВХ труба = 80% от длины кабельных линий
+    const brackets = conduitLength * 3 // 3 скобы на 1 метр трубы
+    const anchors = conduitLength * 3 // 3 анкера на 1 метр трубы
+
     setResults({
       smokeDetectors,
       heatDetectors,
@@ -455,6 +461,10 @@ function App() {
       soueType,
       maxZonesPerPanel,
       alsLength: Math.ceil(alsLength),
+      totalCableLength,
+      conduitLength,
+      brackets,
+      anchors,
       aboveGroundArea,
       undergroundArea,
       totalArea,
@@ -725,66 +735,213 @@ function App() {
                 <h2 className="portal-subtitle">Результаты расчёта</h2>
 
                 <div className="portal-grid">
-                  {/* Извещатели */}
+                  {/* Пожарные извещатели */}
                   <div className="portal-grid-item portal-glow">
                     <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>🔍 Пожарные извещатели</h4>
-                    <p><strong>Дымовые:</strong> {results.smokeDetectors} шт.</p>
-                    <p><strong>Тепловые:</strong> {results.heatDetectors} шт.</p>
-                    <p><strong>Всего:</strong> {results.totalDetectors} шт.</p>
-                    <p><strong>Алгоритм:</strong> {results.algorithmType}</p>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>ИП 212-64-R3 W2.02 Rubezh (дымовой адресный):</strong> {results.smokeDetectors} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Площадь контроля: до 85 м²<br/>
+                        • Чувствительность: 0.05-0.2 дБ/м<br/>
+                        • Питание: 24В от АЛС
+                      </small>
+                    </div>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>ИП 101-1А-R3 Rubezh (тепловой адресный):</strong> {results.heatDetectors} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Температура срабатывания: 57°C±5°C<br/>
+                        • Тип: максимальный А1<br/>
+                        • Питание: 24В от АЛС
+                      </small>
+                    </div>
+                    <div style={{borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '0.75rem'}}>
+                      <p><strong>Всего извещателей:</strong> {results.totalDetectors} шт.</p>
+                      <p><strong>Алгоритм работы:</strong> {results.algorithmType}</p>
+                    </div>
                   </div>
 
-                  {/* Управление */}
+                  {/* Приборы управления */}
                   <div className="portal-grid-item portal-glow">
                     <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>🖥️ Приборы управления</h4>
-                    <p><strong>ППКОП R3-РУБЕЖ-2ОП:</strong> {results.controlPanels} шт.</p>
-                    <p><strong>Зон контроля:</strong> {results.zones} шт.</p>
-                    <p><strong>Макс. зон на прибор:</strong> {results.maxZonesPerPanel}</p>
-                    <p><strong>Релейные модули:</strong> {results.relayModules} шт.</p>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>ППКОП 011249-2-1 "Рубеж-2ОП" прот.R3:</strong> {results.controlPanels} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • До 500 пожарных зон<br/>
+                        • 2 АЛС × 3000м каждая<br/>
+                        • Протокол R3 Rubezh<br/>
+                        • Встроенный БИП 24В/2А
+                      </small>
+                    </div>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>РМ-1/РМ-4-R3 (релейные модули):</strong> {results.relayModules} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Управление внешним оборудованием<br/>
+                        • Контакты: 250В/8А
+                      </small>
+                    </div>
+                    <div style={{borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '0.75rem'}}>
+                      <p><strong>Зон контроля:</strong> {results.zones} шт.</p>
+                      <p><strong>Макс. зон на прибор:</strong> {results.maxZonesPerPanel}</p>
+                    </div>
                   </div>
 
-                  {/* Ручные извещатели */}
+                  {/* Ручные пожарные извещатели */}
                   <div className="portal-grid-item portal-glow">
                     <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>🚨 Ручные извещатели</h4>
-                    <p><strong>ИПР 513-3AM:</strong> {results.manualCallPoints} шт.</p>
-                    <p><strong>Алгоритм:</strong> A (одноразовое срабатывание)</p>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>ИПР 513-3АМ-R3 Rubezh:</strong> {results.manualCallPoints} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Адресный протокол R3<br/>
+                        • Самовозврат после сброса<br/>
+                        • Степень защиты: IP54<br/>
+                        • Размещение: не более 50м друг от друга
+                      </small>
+                    </div>
+                    <div style={{borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '0.75rem'}}>
+                      <p><strong>Алгоритм:</strong> A (одноразовое срабатывание)</p>
+                      <p><strong>Высота установки:</strong> 1.5м от пола</p>
+                    </div>
                   </div>
 
-                  {/* Оповещение */}
+                  {/* Система оповещения и управления эвакуацией */}
                   <div className="portal-grid-item portal-glow">
-                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>📢 Система оповещения</h4>
-                    <p><strong>Звуковые оповещатели:</strong> {results.sounders} шт.</p>
-                    <p><strong>Световые оповещатели:</strong> {results.beacons} шт.</p>
-                    <p><strong>Тип СОУЭ:</strong> {results.soueType}</p>
+                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>📢 Система оповещения (СОУЭ)</h4>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>ОПОП 124-R3 (светозвуковой):</strong> {results.sounders} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Звуковое давление: 75-120 дБА<br/>
+                        • Световая индикация: красный светодиод<br/>
+                        • Адресный протокол R3
+                      </small>
+                    </div>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>МАЯК-24-СТ (световой):</strong> {results.beacons} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Световые сигналы: красный стробоскоп<br/>
+                        • Питание: 24В<br/>
+                        • Для людей с нарушением слуха
+                      </small>
+                    </div>
+                    <div style={{borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '0.75rem'}}>
+                      <p><strong>Тип СОУЭ:</strong> {results.soueType}</p>
+                    </div>
                   </div>
 
-                  {/* Питание */}
+                  {/* Источники электропитания */}
                   <div className="portal-grid-item portal-glow">
                     <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>⚡ Электропитание</h4>
-                    <p><strong>ИВЭПР 24/2,5 RS-R3:</strong> {results.powerSupplies} шт.</p>
-                    <p><strong>Аккумуляторы 12В 7Ач:</strong> {results.batteries} шт.</p>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>ИВЭПР 24/2,5 RS-R3 Rubezh:</strong> {results.powerSupplies} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Выходное напряжение: 24В±10%<br/>
+                        • Номинальный ток: 2.5А<br/>
+                        • Заряд АКБ: автоматический<br/>
+                        • Контроль АКБ и сети 220В
+                      </small>
+                    </div>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>Аккумулятор Delta DTM 12012 (12В 1.2Ач):</strong> {results.batteries} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Герметичная необслуживаемая АКБ<br/>
+                        • Время резерва: до 12 часов<br/>
+                        • Срок службы: 3-5 лет
+                      </small>
+                    </div>
                   </div>
 
-                  {/* Монтаж */}
+                  {/* Дополнительное оборудование */}
                   <div className="portal-grid-item portal-glow">
-                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>🔧 Монтажные изделия</h4>
-                    <p><strong>Монтажные коробки:</strong> {results.boxes} шт.</p>
+                    <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>🔧 Дополнительное оборудование</h4>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>Метка адресная АМ-1-R3 Rubezh:</strong> {results.boxes} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Монтажная коробка для АЛС<br/>
+                        • Адресный протокол R3<br/>
+                        • Контроль целостности шлейфа
+                      </small>
+                    </div>
+                    <div style={{marginBottom: '0.75rem'}}>
+                      <p><strong>Изолятор шлейфа ИЗ-1Б-R3:</strong> {Math.ceil(results.zones/2)} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Изоляция поврежденных участков АЛС<br/>
+                        • Автоматическое восстановление
+                      </small>
+                    </div>
                   </div>
                 </div>
 
-                {/* Кабельная продукция */}
+                {/* Кабельная продукция и монтажные материалы */}
                 <div className="portal-card" style={{marginTop: '2rem', background: 'rgba(255, 255, 255, 0.05)'}}>
                   <h3 style={{color: 'var(--accent-red)', marginBottom: '1rem'}}>📡 Кабельная продукция</h3>
                   <div className="portal-grid">
                     <div className="portal-grid-item">
-                      <p><strong>КСРЭПнг(А)-FRHF 1×2×0.8 (АЛС):</strong> {results.loopCable} м</p>
-                      <small style={{opacity: 0.8}}>Максимальная длина АЛС: {results.alsLength} м</small>
+                      <p><strong>КСРЭПнг(А)-FRHF 1×2×0.97мм² (АЛС):</strong> {results.loopCable} м</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Адресные линии связи R3-РУБЕЖ<br/>
+                        • Огнестойкость: 180 мин при 750°C<br/>
+                        • Макс. длина одной АЛС: {Math.ceil(results.alsLength)} м<br/>
+                        • Сечение: 0.97 мм² (экран + 2 жилы)
+                      </small>
                     </div>
                     <div className="portal-grid-item">
-                      <p><strong>КПРПГнг(А)-FRHF 3×1.5 (питание):</strong> {results.powerCable} м</p>
+                      <p><strong>КПРПГнг(А)-FRHF 3×1.50мм² (питание):</strong> {results.powerCable} м</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Питание приборов 220В AC<br/>
+                        • Огнестойкость: 180 мин при 750°C<br/>
+                        • Номинальное напряжение: 660В<br/>
+                        • 3 жилы (L, N, PE)
+                      </small>
                     </div>
                     <div className="portal-grid-item">
-                      <p><strong>КПСнг(А)-FRHF 2×0.75 (оповещение):</strong> {results.sounderCable} м</p>
+                      <p><strong>КПСнг(А)-FRHF 1×2×1.5мм² (оповещение):</strong> {results.sounderCable} м</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Линии оповещателей СОУЭ<br/>
+                        • Огнестойкость: 180 мин при 750°C<br/>
+                        • Рабочее напряжение: 24В DC<br/>
+                        • 2 жилы + экран
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Монтажные материалы */}
+                <div className="portal-card" style={{marginTop: '2rem', background: 'rgba(255, 255, 255, 0.05)'}}>
+                  <h3 style={{color: 'var(--accent-red)', marginBottom: '1rem'}}>🔧 Монтажные материалы</h3>
+                  <div className="portal-grid">
+                    <div className="portal-grid-item">
+                      <p><strong>Общая длина кабелей:</strong> {results.totalCableLength} м</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • АЛС: {results.loopCable} м<br/>
+                        • Питание: {results.powerCable} м<br/>
+                        • Оповещение: {results.sounderCable} м
+                      </small>
+                    </div>
+                    <div className="portal-grid-item">
+                      <p><strong>Труба гофрированная ПВХ d20мм:</strong> {results.conduitLength} м</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Защита кабелей при скрытой прокладке<br/>
+                        • Диаметр: 20мм (16мм внутренний)<br/>
+                        • Материал: ПВХ, самозатухающий<br/>
+                        • Расчет: 80% от общей длины кабелей
+                      </small>
+                    </div>
+                    <div className="portal-grid-item">
+                      <p><strong>Скоба металлическая СМО 19-26:</strong> {results.brackets} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Крепление гофротрубы к основанию<br/>
+                        • Диаметр зажима: 19-26мм<br/>
+                        • Материал: оцинкованная сталь<br/>
+                        • Норма: 3 скобы на 1 метр трубы
+                      </small>
+                    </div>
+                    <div className="portal-grid-item">
+                      <p><strong>Анкер-клин 6×60мм металлический:</strong> {results.anchors} шт.</p>
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                        • Крепление к бетонным основаниям<br/>
+                        • Диаметр: 6мм, длина: 60мм<br/>
+                        • Нагрузка на вырыв: до 1.2 кН<br/>
+                        • Норма: 3 анкера на 1 метр трубы
+                      </small>
                     </div>
                   </div>
                 </div>
