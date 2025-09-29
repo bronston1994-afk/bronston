@@ -5,7 +5,7 @@ function App() {
   // Основные состояния здания
   const [aboveGroundArea, setAboveGroundArea] = useState(5000) // Надземная часть
   const [undergroundArea, setUndergroundArea] = useState(0) // Подземная автостоянка
-  const [aboveGroundFloors, setAboveGroundFloors] = useState(10) // Этажность
+  const [aboveGroundFloors, SetAboveGroundFloors] = useState(10) // Этажность
   const [undergroundFloors, setUndergroundFloors] = useState(0) // Подземные этажи
   const [apartmentsCount, setApartmentsCount] = useState(100) // Общее количество квартир
 
@@ -65,19 +65,46 @@ function App() {
   // Настройки системы АПС
   const [rooms, setRooms] = useState(50) // Общие помещения (коридоры, лестницы, технические)
   const [height, setHeight] = useState(3.0) // Высота потолков
-  const [buildingType, setBuildingType] = useState('residential_apartment')
+  const [buildingType, setBuildingType] = useState('Ф1.3') // Функциональное назначение по СП 484.1311500.2020
   const [detectorCoverage, setDetectorCoverage] = useState(85) // Согласно СП 5.13130.2009
   const [manualCallDistance, setManualCallDistance] = useState(50) // Норматив
   const [sounderCoverage, setSounderCoverage] = useState(15)
   const [cableReserve, setCableReserve] = useState(15) // Стандартный запас кабеля
   const [zoneSize, setZoneSize] = useState(300) // ЗКПС стандартный размер
 
+  // Новые состояния для улучшенной логики СП 484.1311500.2020 - множественный выбор
+  const [systemTypes, setSystemTypes] = useState(['адресная']) // Типы систем (множественный выбор)
+  const [fireAlgorithms, setFireAlgorithms] = useState(['B']) // Алгоритмы формирования сигнала ПОЖАР (множественный выбор)
+  const [planningOptions, setPlanningOptions] = useState(['defined']) // Варианты планировки (множественный выбор)
+  const [controlledSystems, setControlledSystems] = useState(['СОУЭ_1-3']) // Управляемые системы
+  const [soueOptions, setSoueOptions] = useState(['basic']) // Варианты СОУЭ (множественный выбор)
+  const [auptOptions, setAuptOptions] = useState(['none']) // Варианты АУПТ (множественный выбор)
+
+  // Состояния для корпусов и их этажности
+  const [buildingCorpuses, setBuildingCorpuses] = useState(3) // Количество корпусов
+  const [useDetailedCorpuses, setUseDetailedCorpuses] = useState(false) // Детальная настройка корпусов
+  const [corpusesFloors, setCorpusesFloors] = useState({ // Этажность каждого корпуса
+    corpus1: 16,
+    corpus2: 18,
+    corpus3: 20
+  })
+
   // Результаты и состояния интерфейса
   const [results, setResults] = useState(null)
   const [showApartmentsModal, setShowApartmentsModal] = useState(false)
   const [showRoomsModal, setShowRoomsModal] = useState(false)
   const [showAPSSettingsModal, setShowAPSSettingsModal] = useState(false)
+  const [showCorpusesModal, setShowCorpusesModal] = useState(false)
   const [activeSection, setActiveSection] = useState('calculator') // Навигация портала
+
+  // Функции для множественного выбора
+  const toggleArrayOption = (array, setArray, value) => {
+    if (array.includes(value)) {
+      setArray(array.filter(item => item !== value))
+    } else {
+      setArray([...array, value])
+    }
+  }
 
   // Структура конкретных моделей оборудования по типам
   const equipmentModels = {
@@ -392,12 +419,111 @@ function App() {
       .some(modelKey => selectedEquipmentModels[modelKey])
   }
 
+  // Функции для работы с корпусами
+  const updateCorpusFloors = (corpusKey, floors) => {
+    setCorpusesFloors(prev => ({
+      ...prev,
+      [corpusKey]: Number(floors)
+    }))
+  }
+
+  const updateCorpusesCount = (count) => {
+    const newCount = Number(count)
+    setBuildingCorpuses(newCount)
+
+    // Обновляем объект этажности корпусов
+    const newCorpusesFloors = {}
+    for (let i = 1; i <= newCount; i++) {
+      const corpusKey = `corpus${i}`
+      newCorpusesFloors[corpusKey] = corpusesFloors[corpusKey] || aboveGroundFloors
+    }
+    setCorpusesFloors(newCorpusesFloors)
+  }
+
+  const getMaxCorpusFloors = () => {
+    if (!useDetailedCorpuses) return aboveGroundFloors
+    return Math.max(...Object.values(corpusesFloors))
+  }
+
+  const getTotalCorpusFloors = () => {
+    if (!useDetailedCorpuses) return buildingCorpuses * aboveGroundFloors
+    return Object.values(corpusesFloors).reduce((sum, floors) => sum + floors, 0)
+  }
+
   const calculateEquipment = () => {
     // Используем общую площадь для расчётов
     const area = totalArea
 
-    // Расчёт зон контроля (ЗКПС) - основа для всех расчётов
-    const zones = Math.ceil(area / zoneSize)
+    // Расчёт зон контроля (ЗКПС) согласно СП 484.1311500.2020
+    const calculateZKPS = (area, rooms, functionalClass, planningDefined) => {
+      // Ограничения для ЗКПС согласно СП 484.1311500.2020:
+      // - максимальная площадь: 2000 м²
+      // - максимальное количество извещателей: 32 шт
+      // - максимальное количество помещений: 5 шт
+
+      const maxZoneArea = 2000 // м²
+      const maxDetectorsPerZone = 32 // извещателей
+      const maxRoomsPerZone = 5 // помещений
+
+      let zones = 0
+
+      // ОСОБОЕ ТРЕБОВАНИЕ: Каждая квартира должна быть в отдельной ЗКПС
+      // с изолятором короткого замыкания
+      if (functionalClass === 'Ф1.3' || functionalClass === 'Ф1.2') {
+        // Для жилых домов и гостиниц - каждая квартира/номер = отдельная ЗКПС
+        zones = calculatedApartmentsCount
+
+        // Добавляем ЗКПС для общих помещений (лестницы, лифтовые холлы, коридоры)
+        const commonAreasZones = Math.ceil((stairwellCount + elevatorHallCount + commonCorridorCount) / maxRoomsPerZone)
+
+        // Добавляем ЗКПС для технических помещений
+        const techRoomsTotal = techVentilationCount + techElectricalCount + techHeatingCount +
+                               techPumpingCount + techTransformerCount + techTelecomCount +
+                               techWaterCount + techFloorCount
+        const techZones = Math.ceil(techRoomsTotal / maxRoomsPerZone)
+
+        zones += commonAreasZones + techZones
+
+        // Проверяем ограничения по площади (для больших квартир)
+        const zonesByArea = Math.ceil(area / maxZoneArea)
+        zones = Math.max(zones, zonesByArea)
+
+        return Math.max(calculatedApartmentsCount, zones) // минимум по количеству квартир
+      }
+
+      // Для остальных функциональных классов - стандартный расчет
+      if (planningDefined) {
+        // Если планировка определена - считаем по помещениям
+        const roomsInInput = useDetailedRooms ? calculatedRoomsCount : rooms
+        zones = Math.ceil(roomsInInput / maxRoomsPerZone)
+
+        // Дополнительно проверяем ограничения по площади
+        const zonesByArea = Math.ceil(area / maxZoneArea)
+        zones = Math.max(zones, zonesByArea)
+      } else {
+        // Если планировка не определена - считаем только по площади
+        zones = Math.ceil(area / maxZoneArea)
+      }
+
+      // Проверка ограничения по количеству извещателей
+      // Предварительная оценка: 1 извещатель на 85 м² (средне)
+      const estimatedDetectors = Math.ceil(area / 85)
+      const zonesByDetectors = Math.ceil(estimatedDetectors / maxDetectorsPerZone)
+      zones = Math.max(zones, zonesByDetectors)
+
+      // Особые требования для разных функциональных классов
+      if (functionalClass === 'Ф1.1' || functionalClass === 'Ф2.1') {
+        // Детские сады, больницы, театры - уменьшенные зоны для безопасности
+        zones = Math.ceil(zones * 1.5)
+      } else if (functionalClass.startsWith('Ф5')) {
+        // Производственные и складские - могут быть увеличенные зоны
+        zones = Math.ceil(zones * 0.8)
+      }
+
+      return Math.max(1, zones) // минимум 1 зона
+    }
+
+    const zones = calculateZKPS(area, rooms, buildingType, planningOptions.includes('defined'))
 
     // Расчет пожарных отсеков на основе нормативов
     const getFireCompartmentSize = (buildingType) => {
@@ -473,18 +599,23 @@ function App() {
 
       } else if (useDetailedApartments) {
         // Детальный режим квартир: считаем датчики для каждого типа квартир
-        const detectors1Room = apartment1Room * (1 + 2) // комнаты + кухня + коридор
-        const detectors2Room = apartment2Room * (2 + 2) // комнаты + кухня + коридор
-        const detectors3Room = apartment3Room * (3 + 2) // комнаты + кухня + коридор
-        const detectors4Room = apartment4Room * (4 + 2) // комнаты + кухня + коридор
-        const detectors5Room = apartment5Room * (5 + 2) // комнаты + кухня + коридор
-        const detectors6Room = apartment6Room * (6 + 2) // комнаты + кухня + коридор
-        const detectors7Room = apartment7Room * (7 + 2) // комнаты + кухня + коридор
+        // КРИТИЧНО: Все жилые помещения, включая кухни и прихожие, оборудованы автономными дымовыми ИП
+        // вне зависимости от этажности здания согласно обновленным требованиям пожарной безопасности
+        // Каждая комната, кухня и коридор требует отдельный автономный дымовой извещатель
+        const detectors1Room = apartment1Room * (1 + 2) // комнаты + кухня + коридор (автономные ИП)
+        const detectors2Room = apartment2Room * (2 + 2) // комнаты + кухня + коридор (автономные ИП)
+        const detectors3Room = apartment3Room * (3 + 2) // комнаты + кухня + коридор (автономные ИП)
+        const detectors4Room = apartment4Room * (4 + 2) // комнаты + кухня + коридор (автономные ИП)
+        const detectors5Room = apartment5Room * (5 + 2) // комнаты + кухня + коридор (автономные ИП)
+        const detectors6Room = apartment6Room * (6 + 2) // комнаты + кухня + коридор (автономные ИП)
+        const detectors7Room = apartment7Room * (7 + 2) // комнаты + кухня + коридор (автономные ИП)
 
         totalDetectors = detectors1Room + detectors2Room + detectors3Room + detectors4Room + detectors5Room + detectors6Room + detectors7Room
       } else {
         // Простой режим: используем среднюю комнатность
-        const detectorsPerApartment = averageRoomsPerApartment + 2 // комнаты + кухня + коридор
+        // КРИТИЧНО: Автономные дымовые извещатели обязательны для всех жилых помещений
+        // независимо от этажности - значительно увеличивает количество датчиков и стоимость
+        const detectorsPerApartment = averageRoomsPerApartment + 2 // комнаты + кухня + коридор (автономные ИП)
         totalDetectors = calculatedApartmentsCount * detectorsPerApartment
       }
 
@@ -524,134 +655,162 @@ function App() {
     // Итоговое количество датчиков с учетом всех факторов
     totalDetectors = Math.max(totalDetectors, Math.ceil(area / adjustedDetectorCoverage)) + additionalDetectorsForVerticalPaths + undergroundDetectors
 
-    // Разделение на типы датчиков по принципам безопасности
-    let smokeDetectors, heatDetectors, algorithmType
-    switch(buildingType) {
-      // Жилые помещения
-      case 'residential_apartment': {
-        if (useDetailedRooms) {
-          // Детальный режим помещений: точное разделение по типам
-          // Тепловые датчики в технических помещениях и мусорных камерах
-          const techHeatDetectors = techVentilationCount + techHeatingCount + techElectricalCount + techPumpingCount + techTransformerCount + techWaterCount
-          const wasteHeatDetectors = wasteRoomCount // мусорные камеры - тепловые из-за возможности самовозгорания
-
-          heatDetectors = techHeatDetectors + wasteHeatDetectors
-          smokeDetectors = totalDetectors - heatDetectors
-        } else {
-          // Стандартный режим: по 1 тепловому на кухню в квартире
-          const kitchenHeatDetectors = calculatedApartmentsCount // по 1 тепловому на кухню
-          heatDetectors = kitchenHeatDetectors
-          smokeDetectors = totalDetectors - heatDetectors
-        }
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
+    // Определение типа системы АПС согласно СП 484.1311500.2020
+    const determineSystemType = (functionalClass, area, height) => {
+      // Адресная система требуется для:
+      // - высотных зданий (более 28 м)
+      // - больших площадей (более 3000 м²)
+      // - объектов массового пребывания людей (Ф2, Ф3)
+      if (height >= 28 || area >= 3000 ||
+          functionalClass.startsWith('Ф2') || functionalClass.startsWith('Ф3')) {
+        return 'адресная'
       }
 
-      // Хранение и парковка
-      case 'parking_underground':
-        // Подземный паркинг - особые требования по алгоритму С
-        smokeDetectors = Math.ceil(totalDetectors * 0.6)
-        heatDetectors = Math.ceil(totalDetectors * 0.4)
-        algorithmType = 'С (два разных типа ИП)'
-        break
-      case 'storage_individual':
-        // Кладовые - смешанный тип с учётом хранимых материалов
-        smokeDetectors = Math.ceil(totalDetectors * 0.7)
-        heatDetectors = Math.ceil(totalDetectors * 0.3)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-      case 'waste_room':
-        // Мусоросборная - повышенная пожароопасность
-        smokeDetectors = Math.ceil(totalDetectors * 0.8)
-        heatDetectors = Math.ceil(totalDetectors * 0.2)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-
-      // Технические помещения
-      case 'tech_ventilation':
-      case 'tech_heating':
-      case 'tech_pumping':
-      case 'tech_water':
-      case 'tech_floor':
-        // Технические помещения - больше тепловых из-за оборудования
-        smokeDetectors = Math.ceil(totalDetectors * 0.4)
-        heatDetectors = Math.ceil(totalDetectors * 0.6)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-      case 'tech_transformer':
-      case 'tech_electrical':
-        // Электрические помещения - специальные требования
-        smokeDetectors = Math.ceil(totalDetectors * 0.3)
-        heatDetectors = Math.ceil(totalDetectors * 0.7)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-      case 'tech_telecom':
-        // Слаботочные системы - преимущественно дымовые
-        smokeDetectors = Math.ceil(totalDetectors * 0.9)
-        heatDetectors = Math.ceil(totalDetectors * 0.1)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-
-      // Охрана и эксплуатация
-      case 'security_post':
-      case 'staff_room':
-        // Помещения персонала - как офисные
-        smokeDetectors = Math.ceil(totalDetectors * 0.8)
-        heatDetectors = Math.ceil(totalDetectors * 0.2)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-
-      // Стандартные типы (для совместимости)
-      case 'warehouse':
-        smokeDetectors = Math.ceil(totalDetectors * 0.3)
-        heatDetectors = Math.ceil(totalDetectors * 0.7)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-      case 'industrial':
-        smokeDetectors = Math.ceil(totalDetectors * 0.4)
-        heatDetectors = Math.ceil(totalDetectors * 0.6)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-      case 'residential':
-        smokeDetectors = Math.ceil(totalDetectors * 0.9)
-        heatDetectors = Math.ceil(totalDetectors * 0.1)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-      case 'commercial':
-        smokeDetectors = Math.ceil(totalDetectors * 0.85)
-        heatDetectors = Math.ceil(totalDetectors * 0.15)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
-      default: // office
-        smokeDetectors = Math.ceil(totalDetectors * 0.8)
-        heatDetectors = Math.ceil(totalDetectors * 0.2)
-        algorithmType = 'B (двойное срабатывание ≤60с)'
-        break
+      // Для остальных случаев используем первый выбранный тип системы или адресная по умолчанию
+      return systemTypes[0] || 'адресная'
     }
 
-    // Расчёт ППКОП R3-РУБЕЖ-2ОП для многосекционного жилого комплекса
-    // По ТЗ: в каждом пожарном отсеке - 1 прибор "R3-Рубеж-2ОП"
-    const maxZonesPerPanel = 500 // Максимум зон на один прибор
-    const maxLineLength = 3000 // Максимальная длина одной АЛС в метрах
-    const linesPerPanel = 2 // Количество АЛС на один прибор
+    // Алгоритмы формирования сигнала ПОЖАР согласно СП 484.1311500.2020
+    const getFireAlgorithm = (functionalClass) => {
+      // Алгоритм C (1 извещатель) для особо важных объектов
+      if (functionalClass === 'Ф1.1' || // Детские сады, больницы
+          functionalClass === 'Ф2.1' || // Театры, кинотеатры
+          functionalClass === 'Ф2.3') { // Спортивные сооружения
+        return 'C'
+      }
 
-    // Для жилого комплекса из 10 секций + подземная автостоянка
-    // По ТЗ: 11 пожарных отсеков требуют 11 приборов управления
-    // (fireCompartments уже объявлен выше)
+      // Алгоритм A (1 дымовой ИЛИ 2 тепловых) для жилых зданий
+      if (functionalClass.startsWith('Ф1')) {
+        return 'A'
+      }
 
-    // Расчёт по зонам с учетом сложности объекта
-    const panelsByZones = Math.ceil(zones / maxZonesPerPanel)
+      // Для остальных случаев используем первый выбранный алгоритм или B по умолчанию
+      return fireAlgorithms[0] || 'B'
+    }
 
-    // Расчёт по длине линий для многосекционного комплекса
-    // Увеличенные коэффициенты для сложной архитектуры
-    const aboveGroundLineLength = Math.sqrt(aboveGroundArea) * Math.sqrt(aboveGroundFloors) * 2.2 // Сложная геометрия
-    const undergroundLineLength = Math.sqrt(undergroundArea) * undergroundFloors * 2.5 // Подземная парковка
-    const estimatedLineLength = aboveGroundLineLength + undergroundLineLength
-    const requiredLines = Math.ceil(estimatedLineLength / maxLineLength)
-    const panelsByLineLength = Math.ceil(requiredLines / linesPerPanel)
+    // Определяем фактический тип системы и алгоритм
+    const actualSystemType = determineSystemType(buildingType, area, height)
+    const actualFireAlgorithm = getFireAlgorithm(buildingType)
 
-    // Итоговое количество приборов (минимум по количеству пожарных отсеков)
-    const controlPanels = Math.max(fireCompartments, panelsByZones, panelsByLineLength)
+    // Расчет соотношения дымовых и тепловых датчиков по СП 484.1311500.2020
+    const calculateDetectorRatio = (functionalClass) => {
+      const baseRatios = {
+        'Ф1.1': { smoke: 0.9, heat: 0.1 }, // Детские сады, больницы - преимущественно дымовые
+        'Ф1.2': { smoke: 0.8, heat: 0.2 }, // Гостиницы, общежития
+        'Ф1.3': { smoke: 0.75, heat: 0.25 }, // Многоквартирные дома
+        'Ф1.4': { smoke: 0.7, heat: 0.3 }, // Одноквартирные дома
+        'Ф2.1': { smoke: 0.85, heat: 0.15 }, // Театры, концертные залы
+        'Ф2.2': { smoke: 0.8, heat: 0.2 }, // Музеи, выставки
+        'Ф2.3': { smoke: 0.7, heat: 0.3 }, // Спортивные сооружения
+        'Ф2.4': { smoke: 0.8, heat: 0.2 }, // Библиотеки, клубы
+        'Ф3.1': { smoke: 0.75, heat: 0.25 }, // Торговые центры
+        'Ф3.2': { smoke: 0.6, heat: 0.4 }, // Предприятия питания
+        'Ф3.3': { smoke: 0.8, heat: 0.2 }, // Вокзалы, аэропорты
+        'Ф3.4': { smoke: 0.85, heat: 0.15 }, // Поликлиники
+        'Ф3.5': { smoke: 0.8, heat: 0.2 }, // Помещения с посетителями
+        'Ф3.6': { smoke: 0.75, heat: 0.25 }, // Спортивные залы
+        'Ф4.1': { smoke: 0.85, heat: 0.15 }, // Школы, учебные заведения
+        'Ф4.2': { smoke: 0.8, heat: 0.2 }, // Научные учреждения
+        'Ф4.3': { smoke: 0.8, heat: 0.2 }, // Органы управления, офисы
+        'Ф4.4': { smoke: 0.75, heat: 0.25 }, // Пожарные депо, банки
+        'Ф5.1': { smoke: 0.4, heat: 0.6 }, // Производственные здания
+        'Ф5.2': { smoke: 0.3, heat: 0.7 }, // Складские здания
+        'Ф5.3': { smoke: 0.5, heat: 0.5 }, // Сельскохозяйственные здания
+      }
+
+      return baseRatios[functionalClass] || { smoke: 0.7, heat: 0.3 }
+    }
+
+    // Расчет количества датчиков с учетом алгоритма
+    const ratio = calculateDetectorRatio(buildingType)
+    let smokeDetectors = Math.ceil(totalDetectors * ratio.smoke)
+    let heatDetectors = Math.ceil(totalDetectors * ratio.heat)
+
+    // Корректировка для алгоритма A (1 дымовой ИЛИ 2 тепловых)
+    if (actualFireAlgorithm === 'A') {
+      // Обеспечиваем соотношение 1:2 для тепловых датчиков
+      const adjustedHeat = Math.ceil(smokeDetectors * 2)
+      heatDetectors = Math.min(heatDetectors, adjustedHeat)
+    }
+
+    // Корректировка для алгоритма C (1 любой извещатель)
+    if (actualFireAlgorithm === 'C') {
+      // При алгоритме C можно использовать только дымовые для максимальной чувствительности
+      smokeDetectors = totalDetectors
+      heatDetectors = Math.ceil(totalDetectors * 0.1) // минимальное количество тепловых для технических помещений
+    }
+
+    const algorithmType = `${actualFireAlgorithm} (${actualSystemType} система)`
+
+    // Расчёт ППКП согласно СП 484.1311500.2020 с правильными запасами
+    const calculatePPKP = (zones, functionalClass, systemType, area, totalDetectors) => {
+      // Технические характеристики приборов
+      const panelCapacities = {
+        'адресная': {
+          maxZones: 500,
+          maxDetectors: 2000,
+          maxLineLength: 3000,
+          linesPerPanel: 4,
+          reserve: 0.2 // 20% запас для адресных систем
+        },
+        'безадресная': {
+          maxZones: 99,
+          maxDetectors: 256,
+          maxLineLength: 2000,
+          linesPerPanel: 2,
+          reserve: 0.3 // 30% запас для безадресных систем
+        },
+        'адресно-аналоговая': {
+          maxZones: 1000,
+          maxDetectors: 3200,
+          maxLineLength: 3500,
+          linesPerPanel: 8,
+          reserve: 0.15 // 15% запас для адресно-аналоговых систем
+        }
+      }
+
+      const capacity = panelCapacities[systemType] || panelCapacities['адресная']
+
+      // Расчёт по зонам контроля
+      const panelsByZones = Math.ceil(zones / capacity.maxZones)
+
+      // Расчёт по количеству извещателей
+      const panelsByDetectors = Math.ceil(totalDetectors / capacity.maxDetectors)
+
+      // Расчёт по длине линий связи (упрощенная формула)
+      const estimatedLineLength = Math.sqrt(area) * 4 // периметр + внутренние трассы
+      const requiredLines = Math.ceil(estimatedLineLength / capacity.maxLineLength)
+      const panelsByLineLength = Math.ceil(requiredLines / capacity.linesPerPanel)
+
+      // Базовое количество приборов
+      let basePanels = Math.max(panelsByZones, panelsByDetectors, panelsByLineLength)
+
+      // Минимальное количество - по пожарным отсекам
+      basePanels = Math.max(basePanels, fireCompartments)
+
+      // Особые требования для различных функциональных классов
+      if (functionalClass === 'Ф1.1' || functionalClass === 'Ф2.1') {
+        // Детские сады, больницы, театры - обязательное резервирование
+        basePanels = Math.ceil(basePanels * 1.2)
+      }
+
+      // Добавляем запас согласно типу системы
+      const panelsWithReserve = Math.ceil(basePanels * (1 + capacity.reserve))
+
+      return {
+        base: basePanels,
+        withReserve: panelsWithReserve,
+        reserve: capacity.reserve,
+        systemType: systemType,
+        estimatedLineLength: estimatedLineLength,
+        maxLineLength: capacity.maxLineLength,
+        linesPerPanel: capacity.linesPerPanel,
+        maxZonesPerPanel: capacity.maxZones
+      }
+    }
+
+    const ppkpCalculation = calculatePPKP(zones, buildingType, actualSystemType, area, totalDetectors)
+    const controlPanels = ppkpCalculation.withReserve
 
     // Ручные извещатели (алгоритм А - одноразовое срабатывание)
     // По периметру здания и в помещениях согласно нормативам
@@ -719,7 +878,7 @@ function App() {
         soueType = '3-й тип (торговые)'
         sounderMultiplier = 1.1
         break
-      default: // office
+      default: // офисное
         soueType = '3-й тип (офисные)'
         sounderMultiplier = 1.0
         break
@@ -730,9 +889,72 @@ function App() {
     const sounders = Math.ceil((area / sounderArea) * sounderMultiplier)
     const beacons = Math.ceil(sounders * 0.5) // 50% световых оповещателей
 
-    // Источники питания ИВЭПР 24/2,5 RS-R3 для многосекционного комплекса
-    const powerSupplies = controlPanels // По одному источнику на каждый ППКОП
-    const batteries = powerSupplies * 2 // По 2 аккумулятора Delta DTM 12012 (12В 1.2Ач)
+    // Расчет источников питания и АКБ с коэффициентом старения согласно СП 484.1311500.2020
+    const calculatePowerAndBatteries = (controlPanels, totalDetectors, sounders) => {
+      // Источники питания - один на каждый ППКП
+      const powerSupplies = controlPanels
+
+      // Расчет тока потребления системы
+      const detectorCurrent = 0.0001 // 0.1 мА на извещатель (дежурный режим)
+      const sounderCurrent = 0.05 // 50 мА на оповещатель (режим "Пожар")
+      const panelCurrent = 0.5 // 500 мА на прибор управления
+
+      const totalCurrent = (totalDetectors * detectorCurrent) +
+                          (sounders * sounderCurrent) +
+                          (controlPanels * panelCurrent)
+
+      // Время резервного питания согласно функциональному назначению
+      const getReserveTime = (functionalClass) => {
+        if (functionalClass === 'Ф1.1' || functionalClass === 'Ф2.1') {
+          return 24 // 24 часа для особо важных объектов
+        } else if (functionalClass.startsWith('Ф1') || functionalClass.startsWith('Ф2')) {
+          return 12 // 12 часов для жилых и общественных зданий
+        } else {
+          return 6 // 6 часов для производственных и складских
+        }
+      }
+
+      const reserveTimeHours = getReserveTime(buildingType)
+
+      // Коэффициент старения АКБ согласно СП 484.1311500.2020
+      const agingCoefficient = 1.25 // учет старения АКБ за срок службы
+
+      // Коэффициент глубины разряда (85% для свинцово-кислотных АКБ)
+      const dischargeCoefficient = 0.85
+
+      // Температурный коэффициент (снижение емкости при низких температурах)
+      const temperatureCoefficient = 0.9
+
+      // Требуемая емкость АКБ с учетом всех коэффициентов
+      const requiredCapacity = (totalCurrent * reserveTimeHours * agingCoefficient) /
+                               (dischargeCoefficient * temperatureCoefficient)
+
+      // Стандартные емкости доступных АКБ (Ач)
+      const availableBatteries = [1.2, 1.7, 7, 17, 40, 65, 100]
+
+      // Выбор подходящей емкости
+      let selectedCapacity = availableBatteries.find(capacity => capacity >= requiredCapacity) || 100
+
+      // Количество АКБ на один источник питания (обычно 2 для 24В системы)
+      const batteriesPerPowerSupply = 2
+
+      // Общее количество АКБ
+      const totalBatteries = powerSupplies * batteriesPerPowerSupply
+
+      return {
+        powerSupplies: powerSupplies,
+        batteries: totalBatteries,
+        batteryCapacity: selectedCapacity,
+        requiredCapacity: requiredCapacity.toFixed(2),
+        reserveTime: reserveTimeHours,
+        agingCoefficient: agingCoefficient,
+        totalCurrent: totalCurrent.toFixed(3)
+      }
+    }
+
+    const powerCalculation = calculatePowerAndBatteries(controlPanels, totalDetectors, sounders)
+    const powerSupplies = powerCalculation.powerSupplies
+    const batteries = powerCalculation.batteries
 
     // ЦПИУ "Рубеж" исп.02 - верхний уровень управления
     // Расчет ЦПИУ с учетом сложности объекта и количества пожарных отсеков
@@ -746,8 +968,7 @@ function App() {
     // Релейные модули для управления сложными системами
     const relayModules = Math.ceil(zones / 8) + controlPanels * 2 // РМ-1/РМ-4 + дополнительные для лифтов, ПДВ, ОВК
 
-    // Монтажные коробки - для всех устройств на шлейфах
-    const boxes = Math.ceil((totalDetectors + manualCallPoints + sounders + beacons) / 2)
+    // Монтажные коробки не используются в текущем расчете
 
     // Расчёт кабеля с учётом требований АЛС R3-РУБЕЖ-2ОП
     // Увеличенный запас для сложных объектов
@@ -756,7 +977,7 @@ function App() {
 
     // КСРЭПнг(А)-FRHF для АЛС (адресные линии связи)
     // Длина АЛС ≤ 3000м на линию, 2 линии на прибор
-    const alsLength = Math.min(estimatedLineLength, maxLineLength * linesPerPanel)
+    const alsLength = Math.min(ppkpCalculation.estimatedLineLength, ppkpCalculation.maxLineLength * ppkpCalculation.linesPerPanel)
 
     // Дополнительный кабель для связи между пожарными отсеками
     const interCompartmentCable = fireCompartments > 1 ? (fireCompartments - 1) * 50 : 0
@@ -776,6 +997,36 @@ function App() {
     const brackets = conduitLength * 3 // 3 скобы на 1 метр трубы
     const anchors = conduitLength * 3 // 3 анкера на 1 метр трубы
 
+    // Расчет автономных пожарных извещателей для жилых зданий Ф1
+    let autonomousDetectors = 0
+    if (buildingType === 'Ф1.1' || buildingType === 'Ф1.2' || buildingType === 'Ф1.3' || buildingType === 'Ф1.4') {
+      // Для жилых зданий все жилые помещения, включая кухни и прихожие, оборудованы автономными дымовыми ИП
+      // вне зависимости от этажности здания согласно обновленным требованиям пожарной безопасности
+
+      if (buildingType === 'Ф1.3' || buildingType === 'Ф1.4') {
+        // Многоквартирные и одноквартирные жилые дома
+        if (useDetailedApartments) {
+          // Детальный расчет: каждая комната, кухня и коридор требует автономный ИП
+          autonomousDetectors =
+            apartment1Room * (1 + 2) + // комнаты + кухня + коридор
+            apartment2Room * (2 + 2) +
+            apartment3Room * (3 + 2) +
+            apartment4Room * (4 + 2) +
+            apartment5Room * (5 + 2) +
+            apartment6Room * (6 + 2) +
+            apartment7Room * (7 + 2)
+        } else {
+          // Простой режим: автономные ИП для всех жилых помещений
+          const autonomousPerApartment = averageRoomsPerApartment + 2 // комнаты + кухня + коридор
+          autonomousDetectors = calculatedApartmentsCount * autonomousPerApartment
+        }
+      } else if (buildingType === 'Ф1.1' || buildingType === 'Ф1.2') {
+        // Для больниц, детских садов, гостиниц - автономные ИП в жилых/спальных помещениях
+        const estimatedResidentialRooms = Math.ceil(area / 25) // примерная оценка жилых помещений (палаты, номера)
+        autonomousDetectors = estimatedResidentialRooms
+      }
+    }
+
     // Получаем выбранные модели по категориям
     const selectedModels = {
       detectors: getSelectedModelsByCategory('detectors'),
@@ -794,6 +1045,7 @@ function App() {
       smokeDetectors: isCategorySelected('detectors') ? smokeDetectors : 0,
       heatDetectors: isCategorySelected('detectors') ? heatDetectors : 0,
       totalDetectors: isCategorySelected('detectors') ? totalDetectors : 0,
+      autonomousDetectors: isCategorySelected('detectors') ? autonomousDetectors : 0,
       controlPanels: isCategorySelected('controlPanels') ? controlPanels : 0,
       manualCallPoints: isCategorySelected('manualCallPoints') ? manualCallPoints : 0,
       sounders: isCategorySelected('sounders') ? sounders : 0,
@@ -812,7 +1064,7 @@ function App() {
       relayModules: isCategorySelected('controlPanels') ? relayModules : 0,
       algorithmType,
       soueType,
-      maxZonesPerPanel,
+      maxZonesPerPanel: ppkpCalculation.maxZonesPerPanel,
       alsLength: Math.ceil(alsLength),
       totalCableLength: isCategorySelected('cables') ? totalCableLength : 0,
       conduitLength: isCategorySelected('mountingMaterials') ? conduitLength : 0,
@@ -835,7 +1087,29 @@ function App() {
       // Статистика выбора
       categoriesSelected: Object.keys(equipmentModels).filter(cat => isCategorySelected(cat)),
       totalModelsSelected: Object.values(selectedEquipmentModels).filter(Boolean).length,
-      totalModelsAvailable: Object.keys(selectedEquipmentModels).length
+      totalModelsAvailable: Object.keys(selectedEquipmentModels).length,
+      // Детали расчета для пояснений
+      calculationDetails: {
+        smokeDetectorsCalculation: `Площадь ${area}м² ÷ покрытие ${adjustedDetectorCoverage}м²/ИП × ${(calculateDetectorRatio(buildingType).smoke * 100).toFixed(0)}% (${buildingType}) × алгоритм ${actualFireAlgorithm}`,
+        heatDetectorsCalculation: `Площадь ${area}м² ÷ покрытие ${adjustedDetectorCoverage}м²/ИП × ${(calculateDetectorRatio(buildingType).heat * 100).toFixed(0)}% (${buildingType}) × алгоритм ${actualFireAlgorithm}`,
+        autonomousDetectorsCalculation: (buildingType === 'Ф1.1' || buildingType === 'Ф1.2' || buildingType === 'Ф1.3' || buildingType === 'Ф1.4') ?
+          (buildingType === 'Ф1.3' || buildingType === 'Ф1.4' ?
+            `${calculatedApartmentsCount} квартир × ${averageRoomsPerApartment + 2} помещений (комнаты+кухня+коридор)` :
+            `Площадь ${area}м² ÷ 25м²/помещение для ${buildingType}`) :
+          'Не требуются для данного типа здания',
+        totalDetectorsCalculation: `Базовый расчет: ${Math.ceil(area / adjustedDetectorCoverage)}шт, итого с корректировками: ${totalDetectors}шт`,
+        controlPanelsCalculation: `${zones} зон ÷ ${ppkpCalculation.maxZonesPerPanel} зон/панель + резерв 20% = ${controlPanels}шт`,
+        manualCallPointsCalculation: `Периметр ${Math.ceil(Math.sqrt(area) * 4)}м ÷ 50м + ${buildingType.includes('Ф1') ? 'жилые помещения' : 'дополнительные зоны'} = ${manualCallPoints}шт`,
+        soundersCalculation: `Площадь ${area}м² ÷ 60м²/извещатель (СП 3.13130.2009) = ${sounders}шт`,
+        zonesCalculation: `${totalDetectors} извещателей ÷ ${buildingType.includes('Ф1') ? '1 зона/помещение для жилых' : '10-15 датчиков/зона'} = ${zones} зон`,
+        area,
+        adjustedDetectorCoverage,
+        buildingType,
+        actualFireAlgorithm,
+        actualSystemType,
+        calculatedApartmentsCount,
+        averageRoomsPerApartment
+      }
     }
 
     setResults(filteredResults)
@@ -895,9 +1169,6 @@ function App() {
                     className="portal-input"
                     placeholder="10 секций: жилые + коммерческие + ФОК"
                   />
-                  <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
-                    Включает: квартиры, ПОН, торговлю, ресторан, ФОК
-                  </small>
                 </div>
 
                 <div className="portal-grid-item">
@@ -909,44 +1180,37 @@ function App() {
                     className="portal-input"
                     placeholder="Общая подземная парковка + кладовые + техпомещения"
                   />
-                  <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
-                    ПО № 11: паркинг, кладовые, технические, мусорные
-                  </small>
                 </div>
 
                 <div className="portal-grid-item">
-                  <label>Максимальная этажность секций</label>
+                  <label>Количество корпусов</label>
                   <input
                     type="number"
-                    value={aboveGroundFloors}
-                    onChange={(e) => setAboveGroundFloors(Number(e.target.value))}
+                    value={buildingCorpuses}
+                    onChange={(e) => updateCorpusesCount(e.target.value)}
                     className="portal-input"
                     min="1"
+                    max="20"
                   />
                   <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
-                    Максимальная этажность здания
+                    Общее количество корпусов здания
                   </small>
+                  <button
+                    onClick={() => setShowCorpusesModal(true)}
+                    className="portal-button"
+                    style={{marginTop: '1rem', fontSize: '0.9rem', padding: '0.5rem 1rem'}}
+                  >
+                    🏗️ Настройка этажности корпусов
+                  </button>
                 </div>
 
-                <div className="portal-grid-item">
-                  <label>Подземные этажи</label>
-                  <input
-                    type="number"
-                    value={undergroundFloors}
-                    onChange={(e) => setUndergroundFloors(Number(e.target.value))}
-                    className="portal-input"
-                    min="0"
-                  />
-                  <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
-                    Количество подземных этажей (парковка, технические помещения)
-                  </small>
-                </div>
+
               </div>
 
               <div style={{textAlign: 'center', margin: '1.5rem 0', color: 'var(--text-white)', background: 'rgba(255, 107, 53, 0.1)', padding: '1rem', borderRadius: '8px'}}>
                 <strong>🏢 Общая площадь: {totalArea.toLocaleString()} м²</strong><br/>
                 <span style={{fontSize: '0.9rem'}}>
-                  Макс. этажность: {aboveGroundFloors} эт. | Подземных: {undergroundFloors} эт. | Квартир: {calculatedApartmentsCount}
+                  Количество этажей: {useDetailedCorpuses ? getTotalCorpusFloors() : buildingCorpuses * aboveGroundFloors} эт. | Подземных: {undergroundFloors} эт. | Квартир: {calculatedApartmentsCount}
                 </span>
               </div>
 
@@ -1041,20 +1305,71 @@ function App() {
                 </div>
 
                 <div className="portal-grid-item">
-                  <label>Тип здания</label>
+                  <label>Функциональное назначение (СП 484.1311500.2020)</label>
                   <select
                     value={buildingType}
                     onChange={(e) => setBuildingType(e.target.value)}
-                    className="portal-input"
+                    style={{
+                      color: '#000000',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #cccccc',
+                      fontWeight: 'normal',
+                      textShadow: 'none',
+                      WebkitAppearance: 'menulist',
+                      appearance: 'menulist'
+                    }}
                   >
-                    <option value="residential_apartment">Жилой дом (квартиры)</option>
-                    <option value="office">Офисное здание</option>
-                    <option value="warehouse">Складское помещение</option>
-                    <option value="industrial">Производственное здание</option>
-                    <option value="commercial">Торговое помещение</option>
-                    <option value="parking_underground">Подземная парковка</option>
+                    <option value="Ф1.1" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф1.1 - Детские сады, больницы, дома престарелых</option>
+                    <option value="Ф1.2" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф1.2 - Гостиницы, общежития, интернаты</option>
+                    <option value="Ф1.3" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф1.3 - Многоквартирные жилые дома</option>
+                    <option value="Ф1.4" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф1.4 - Одноквартирные жилые дома</option>
+                    <option value="Ф2.1" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф2.1 - Театры, кинотеатры, концертные залы</option>
+                    <option value="Ф2.2" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф2.2 - Музеи, выставки, танцевальные залы</option>
+                    <option value="Ф2.3" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф2.3 - Спортивные сооружения</option>
+                    <option value="Ф2.4" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф2.4 - Библиотеки, клубы</option>
+                    <option value="Ф3.1" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф3.1 - Торговые центры, рынки</option>
+                    <option value="Ф3.2" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф3.2 - Предприятия питания</option>
+                    <option value="Ф3.3" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф3.3 - Вокзалы, аэропорты</option>
+                    <option value="Ф3.4" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф3.4 - Поликлиники, амбулатории</option>
+                    <option value="Ф3.5" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф3.5 - Помещения с посетителями</option>
+                    <option value="Ф3.6" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф3.6 - Спортивные залы без трибун</option>
+                    <option value="Ф4.1" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф4.1 - Школы, учебные заведения</option>
+                    <option value="Ф4.2" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф4.2 - Научные учреждения</option>
+                    <option value="Ф4.3" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф4.3 - Органы управления, проектные организации</option>
+                    <option value="Ф4.4" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф4.4 - Пожарные депо, банки</option>
+                    <option value="Ф5.1" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф5.1 - Производственные здания</option>
+                    <option value="Ф5.2" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф5.2 - Складские здания</option>
+                    <option value="Ф5.3" style={{color: '#000000', backgroundColor: '#ffffff'}}>Ф5.3 - Сельскохозяйственные здания</option>
                   </select>
                 </div>
+
+                {/* Информация об автономных датчиках для Ф1 зданий */}
+                {(buildingType === 'Ф1.1' || buildingType === 'Ф1.2' || buildingType === 'Ф1.3' || buildingType === 'Ф1.4') && (
+                  <div className="portal-grid-item" style={{gridColumn: 'span 2'}}>
+                    <div style={{
+                      background: 'rgba(255, 107, 53, 0.1)',
+                      border: '1px solid rgba(255, 107, 53, 0.3)',
+                      borderRadius: '8px',
+                      padding: '1rem',
+                      marginTop: '1rem'
+                    }}>
+                      <h4 style={{color: '#fc8181', margin: '0 0 0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                        🚨 КРИТИЧНО: Требования к автономным ИП для Ф1 зданий
+                      </h4>
+                      <div style={{color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', lineHeight: '1.5'}}>
+                        <p style={{margin: '0 0 0.5rem 0'}}>
+                          <strong>⚠️ ОБЯЗАТЕЛЬНО:</strong> Все жилые помещения, включая кухни и прихожие, оборудованы автономными дымовыми ИП вне зависимости от этажности здания
+                        </p>
+                        <p style={{margin: '0 0 0.5rem 0'}}>
+                          <strong>💰 ВЛИЯНИЕ НА СТОИМОСТЬ:</strong> Увеличение общей стоимости проекта на 25-40% за счет дополнительных автономных извещателей
+                        </p>
+                        <p style={{margin: '0'}}>
+                          <strong>📊 РАСЧЕТ:</strong> Каждая комната, кухня и коридор требует отдельный автономный дымовой извещатель согласно обновленным требованиям пожарной безопасности
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="portal-grid-item">
                   <button
@@ -1103,6 +1418,14 @@ function App() {
                         • Чувствительность: 0.05-0.2 дБ/м<br/>
                         • Питание: 24В от АЛС
                       </small>
+                      {results.calculationDetails && (
+                        <div style={{marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px'}}>
+                          <p style={{color: '#68d391', fontSize: '0.8rem', margin: '0', fontWeight: 'bold'}}>📊 Расчет количества:</p>
+                          <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', margin: '0.25rem 0 0 0'}}>
+                            {results.calculationDetails.smokeDetectorsCalculation}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <div style={{marginBottom: '0.75rem'}}>
                       <p><strong>ИП 101-1А-R3 Rubezh (тепловой адресный):</strong> {results.heatDetectors} шт.</p>
@@ -1111,10 +1434,49 @@ function App() {
                         • Тип: максимальный А1<br/>
                         • Питание: 24В от АЛС
                       </small>
+                      {results.calculationDetails && (
+                        <div style={{marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px'}}>
+                          <p style={{color: '#f6ad55', fontSize: '0.8rem', margin: '0', fontWeight: 'bold'}}>🌡️ Расчет количества:</p>
+                          <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', margin: '0.25rem 0 0 0'}}>
+                            {results.calculationDetails.heatDetectorsCalculation}
+                          </p>
+                        </div>
+                      )}
                     </div>
+                    {/* Автономные извещатели для Ф1 зданий */}
+                    {(results.autonomousDetectors > 0) && (
+                      <div style={{marginBottom: '0.75rem'}}>
+                        <p><strong>ИП 212-50М2 (автономный дымовой):</strong> {results.autonomousDetectors} шт.</p>
+                        <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
+                          • Автономное питание: батарея 9В<br/>
+                          • Звуковой сигнал: 85 дБ на расстоянии 3м<br/>
+                          • Обязательны для всех жилых помещений Ф1<br/>
+                          • Установка в каждой комнате, кухне, коридоре
+                        </small>
+                        {results.calculationDetails && (
+                          <div style={{marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px'}}>
+                            <p style={{color: '#fc8181', fontSize: '0.8rem', margin: '0', fontWeight: 'bold'}}>🏠 Расчет количества:</p>
+                            <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', margin: '0.25rem 0 0 0'}}>
+                              {results.calculationDetails.autonomousDetectorsCalculation}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div style={{borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '0.75rem'}}>
                       <p><strong>Всего извещателей:</strong> {results.totalDetectors} шт.</p>
                       <p><strong>Алгоритм работы:</strong> {results.algorithmType}</p>
+                      {(buildingType === 'Ф1.1' || buildingType === 'Ф1.2' || buildingType === 'Ф1.3' || buildingType === 'Ф1.4') && (
+                        <div style={{marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(255, 107, 53, 0.1)', border: '1px solid rgba(255, 107, 53, 0.3)', borderRadius: '8px'}}>
+                          <p style={{color: '#fc8181', fontWeight: 'bold', margin: '0 0 0.5rem 0'}}>⚠️ СТОИМОСТЬ АВТОНОМНЫХ ДАТЧИКОВ ДЛЯ Ф1</p>
+                          <small style={{color: 'rgba(255,255,255,0.9)', fontSize: '0.85em'}}>
+                            • Дополнительная стоимость автономных ИП: +25-40% к базовой стоимости проекта<br/>
+                            • Автономные дымовые ИП обязательны для всех жилых помещений (кухни, коридоры) согласно обновленным требованиям<br/>
+                            • Средняя стоимость автономного ИП: 800-1500₽/шт (без монтажа)<br/>
+                            • Увеличение общей стоимости системы АПС на 15-30% для жилых зданий
+                          </small>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1129,6 +1491,14 @@ function App() {
                         • Протокол R3 Rubezh<br/>
                         • Встроенный БИП 24В/2А
                       </small>
+                      {results.calculationDetails && (
+                        <div style={{marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px'}}>
+                          <p style={{color: '#9f7aea', fontSize: '0.8rem', margin: '0', fontWeight: 'bold'}}>🖥️ Расчет количества:</p>
+                          <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', margin: '0.25rem 0 0 0'}}>
+                            {results.calculationDetails.controlPanelsCalculation}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <div style={{marginBottom: '0.75rem'}}>
                       <p><strong>РМ-1/РМ-4-R3 (релейные модули):</strong> {results.relayModules} шт.</p>
@@ -1140,6 +1510,14 @@ function App() {
                     <div style={{borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '0.75rem'}}>
                       <p><strong>Зон контроля:</strong> {results.zones} шт.</p>
                       <p><strong>Макс. зон на прибор:</strong> {results.maxZonesPerPanel}</p>
+                      {results.calculationDetails && (
+                        <div style={{marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px'}}>
+                          <p style={{color: '#38b2ac', fontSize: '0.8rem', margin: '0', fontWeight: 'bold'}}>🎯 Расчет зон:</p>
+                          <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', margin: '0.25rem 0 0 0'}}>
+                            {results.calculationDetails.zonesCalculation}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1154,6 +1532,14 @@ function App() {
                         • Степень защиты: IP54<br/>
                         • Размещение: не более 50м друг от друга
                       </small>
+                      {results.calculationDetails && (
+                        <div style={{marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px'}}>
+                          <p style={{color: '#fc8181', fontSize: '0.8rem', margin: '0', fontWeight: 'bold'}}>🚨 Расчет количества:</p>
+                          <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', margin: '0.25rem 0 0 0'}}>
+                            {results.calculationDetails.manualCallPointsCalculation}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <div style={{borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '0.75rem'}}>
                       <p><strong>Алгоритм:</strong> A (одноразовое срабатывание)</p>
@@ -1171,6 +1557,14 @@ function App() {
                         • Световая индикация: красный светодиод<br/>
                         • Адресный протокол R3
                       </small>
+                      {results.calculationDetails && (
+                        <div style={{marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px'}}>
+                          <p style={{color: '#4299e1', fontSize: '0.8rem', margin: '0', fontWeight: 'bold'}}>🔊 Расчет количества:</p>
+                          <p style={{color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', margin: '0.25rem 0 0 0'}}>
+                            {results.calculationDetails.soundersCalculation}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <div style={{marginBottom: '0.75rem'}}>
                       <p><strong>МАЯК-24-СТ (световой):</strong> {results.beacons} шт.</p>
@@ -1219,10 +1613,18 @@ function App() {
                       </small>
                     </div>
                     <div style={{marginBottom: '0.75rem'}}>
-                      <p><strong>Изолятор шлейфа ИЗ-1Б-R3:</strong> {Math.ceil(results.zones/2)} шт.</p>
+                      <p><strong>Изолятор шлейфа ИЗ-1Б-R3:</strong> {
+                        buildingType === 'Ф1.3' || buildingType === 'Ф1.2' ?
+                        calculatedApartmentsCount + Math.ceil((results.zones - calculatedApartmentsCount)/2) :
+                        Math.ceil(results.zones/2)
+                      } шт.</p>
                       <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.85em'}}>
                         • Изоляция поврежденных участков АЛС<br/>
-                        • Автоматическое восстановление
+                        • Автоматическое восстановление<br/>
+                        {buildingType === 'Ф1.3' || buildingType === 'Ф1.2' ?
+                          '• По одному изолятору на каждую квартиру' :
+                          '• По одному изолятору на 2 ЗКПС'
+                        }
                       </small>
                     </div>
                   </div>
@@ -1809,6 +2211,95 @@ function App() {
         </div>
       )}
 
+      {/* Модальное окно для настройки корпусов */}
+      {showCorpusesModal && (
+        <div className={`portal-modal ${showCorpusesModal ? 'active' : ''}`}>
+          <div className="portal-modal-content">
+            <h3 style={{color: 'var(--text-white)', marginBottom: '1.5rem'}}>Настройка этажности корпусов</h3>
+
+            <div style={{maxHeight: '60vh', overflowY: 'auto'}}>
+              <div className="portal-grid">
+                {Array.from({length: buildingCorpuses}, (_, index) => {
+                  const corpusKey = `corpus${index + 1}`
+                  const corpusNumber = index + 1
+                  return (
+                    <div key={corpusKey} className="portal-grid-item">
+                      <label>Корпус {corpusNumber} - этажей</label>
+                      <input
+                        type="number"
+                        value={corpusesFloors[corpusKey] || aboveGroundFloors}
+                        onChange={(e) => updateCorpusFloors(corpusKey, Number(e.target.value))}
+                        className="portal-input"
+                        min="1"
+                        max="50"
+                      />
+                      <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
+                        Этажность {corpusNumber}-го корпуса
+                      </small>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Поле для подземных этажей */}
+              <div style={{marginTop: '1.5rem', padding: '1rem', background: 'rgba(72, 187, 120, 0.1)', borderRadius: '8px', border: '1px solid rgba(72, 187, 120, 0.3)'}}>
+                <h4 style={{color: '#68d391', margin: '0 0 1rem 0'}}>🏗️ Общие параметры</h4>
+                <div className="portal-grid-item">
+                  <label>Подземные этажи</label>
+                  <input
+                    type="number"
+                    value={undergroundFloors}
+                    onChange={(e) => setUndergroundFloors(Number(e.target.value))}
+                    className="portal-input"
+                    min="0"
+                    max="10"
+                  />
+                  <small style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block'}}>
+                    Количество подземных этажей (парковка, технические помещения)
+                  </small>
+                </div>
+              </div>
+
+              <div style={{marginTop: '1.5rem', padding: '1rem', background: 'rgba(255, 107, 53, 0.1)', borderRadius: '8px', border: '1px solid rgba(255, 107, 53, 0.3)'}}>
+                <h4 style={{color: 'var(--accent-orange)', margin: '0 0 0.5rem 0'}}>📊 Сводка по корпусам</h4>
+                <p style={{color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', margin: '0.25rem 0'}}>
+                  Общее количество корпусов: <strong>{buildingCorpuses}</strong>
+                </p>
+                <p style={{color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', margin: '0.25rem 0'}}>
+                  Максимальная этажность: <strong>{getMaxCorpusFloors()}</strong>
+                </p>
+                <p style={{color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', margin: '0.25rem 0'}}>
+                  Суммарная этажность: <strong>{getTotalCorpusFloors()}</strong>
+                </p>
+              </div>
+            </div>
+
+            <div style={{display: 'flex', gap: '1rem', marginTop: '2rem'}}>
+              <button
+                onClick={() => {
+                  setUseDetailedCorpuses(true)
+                  setShowCorpusesModal(false)
+                }}
+                className="portal-button"
+                style={{flex: 1}}
+              >
+                ✅ Применить настройки
+              </button>
+              <button
+                onClick={() => {
+                  setUseDetailedCorpuses(false)
+                  setShowCorpusesModal(false)
+                }}
+                className="portal-button"
+                style={{flex: 1, background: 'rgba(160, 174, 192, 0.2)', border: '1px solid rgba(160, 174, 192, 0.3)'}}
+              >
+                ❌ Отменить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Модальное окно для настроек АПС */}
       {showAPSSettingsModal && (
         <div className="portal-modal active">
@@ -1816,6 +2307,297 @@ function App() {
             <h3 style={{color: 'var(--text-white)', marginBottom: '1.5rem', textAlign: 'center'}}>
               ⚙️ Расширенные настройки системы АПС
             </h3>
+
+            {/* Параметры СП 484.1311500.2020 */}
+            <div style={{marginBottom: '2rem'}}>
+              <h4 style={{color: 'var(--accent-orange)', marginBottom: '1rem'}}>⚖️ Параметры СП 484.1311500.2020</h4>
+              <div className="portal-grid">
+                <div className="portal-grid-item">
+                  <label>Типы систем АПС (множественный выбор)</label>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    padding: '0.75rem'
+                  }}>
+                    {[
+                      {value: 'адресная', label: 'Адресная'},
+                      {value: 'безадресная', label: 'Безадресная'},
+                      {value: 'адресно-аналоговая', label: 'Адресно-аналоговая'}
+                    ].map(option => (
+                      <div key={option.value} style={{marginBottom: '0.5rem', display: 'flex', alignItems: 'center'}}>
+                        <input
+                          type="checkbox"
+                          id={`system-${option.value}`}
+                          checked={systemTypes.includes(option.value)}
+                          onChange={() => toggleArrayOption(systemTypes, setSystemTypes, option.value)}
+                          style={{marginRight: '0.5rem'}}
+                        />
+                        <label htmlFor={`system-${option.value}`} style={{color: 'var(--text-white)', cursor: 'pointer'}}>
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <small style={{
+                    color: '#68d391',
+                    fontSize: '0.8rem',
+                    marginTop: '0.5rem',
+                    display: 'block',
+                    background: 'rgba(72, 187, 120, 0.1)',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(72, 187, 120, 0.3)'
+                  }}>
+                    💡 Выбрано: {systemTypes.join(', ')}
+                    <br/><strong>КРИТИЧНОЕ ВЛИЯНИЕ НА РАСЧЕТ:</strong>
+                    {systemTypes.includes('адресная') ?
+                      ' ⚡ АДРЕСНАЯ СИСТЕМА: Увеличивает стоимость оборудования на 40-60%, но снижает количество ложных срабатываний на 85%. Требует специализированного кабеля и увеличивает сложность монтажа. Обязательна для зданий выше 28м и площадью более 3000м².' : ''}
+                    {systemTypes.includes('безадресная') ?
+                      ' ⚠️ БЕЗАДРЕСНАЯ СИСТЕМА: Экономия 30-50% на оборудовании, но увеличение количества датчиков на 20-30% для компенсации низкой точности локализации. Высокий риск ложных срабатываний. Ограничения по СП 484.1311500.2020 для крупных объектов.' : ''}
+                    {systemTypes.includes('адресно-аналоговая') ?
+                      ' 🔥 АДРЕСНО-АНАЛОГОВАЯ: Премиум-класс с увеличением стоимости на 80-120%. Автоматическая компенсация запыления датчиков, программируемые пороги чувствительности. Критично для объектов с высокими требованиями к безопасности.' : ''}
+                  </small>
+                </div>
+                <div className="portal-grid-item">
+                  <label>Алгоритмы формирования сигнала ПОЖАР (множественный выбор)</label>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    padding: '0.75rem'
+                  }}>
+                    {[
+                      {value: 'A', label: 'Алгоритм A - 1 дымовой ИЛИ 2 тепловых'},
+                      {value: 'B', label: 'Алгоритм B - 2 любых извещателя'},
+                      {value: 'C', label: 'Алгоритм C - 1 любой извещатель'}
+                    ].map(option => (
+                      <div key={option.value} style={{marginBottom: '0.5rem', display: 'flex', alignItems: 'center'}}>
+                        <input
+                          type="checkbox"
+                          id={`algorithm-${option.value}`}
+                          checked={fireAlgorithms.includes(option.value)}
+                          onChange={() => toggleArrayOption(fireAlgorithms, setFireAlgorithms, option.value)}
+                          style={{marginRight: '0.5rem'}}
+                        />
+                        <label htmlFor={`algorithm-${option.value}`} style={{color: 'var(--text-white)', cursor: 'pointer'}}>
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <small style={{
+                    color: '#68d391',
+                    fontSize: '0.8rem',
+                    marginTop: '0.5rem',
+                    display: 'block',
+                    background: 'rgba(72, 187, 120, 0.1)',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(72, 187, 120, 0.3)'
+                  }}>
+                    💡 Выбрано: {fireAlgorithms.join(', ')}
+                    <br/><strong>КРИТИЧНОЕ ВЛИЯНИЕ НА РАСЧЕТ:</strong>
+                    {fireAlgorithms.includes('A') ?
+                      ' 🔥 АЛГОРИТМ A (1 дымовой ИЛИ 2 тепловых): Стандарт для жилых зданий Ф1. Снижение количества дымовых датчиков на 15-25% при установке тепловых дублеров. РИСК: возможны задержки обнаружения в больших помещениях. Экономия 10-20% на оборудовании.' : ''}
+                    {fireAlgorithms.includes('B') ?
+                      ' ⚡ АЛГОРИТМ B (2 извещателя): Золотой стандарт надежности. Увеличение количества датчиков на 40-60% для обеспечения дублирования. КРИТИЧНО: обязателен для объектов с массовым пребыванием людей. Увеличение стоимости на 35-45%.' : ''}
+                    {fireAlgorithms.includes('C') ?
+                      ' 🚨 АЛГОРИТМ C (1 извещатель): Максимальная скорость реагирования для критичных объектов (больницы, детсады). ОПАСНОСТЬ: высокий риск ложных срабатываний. Требует датчики высшего класса. Увеличение стоимости датчиков на 60-80%.' : ''}
+                  </small>
+                </div>
+                <div className="portal-grid-item">
+                  <label>Планировка определена (множественный выбор)</label>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    padding: '0.75rem'
+                  }}>
+                    {[
+                      {value: 'defined', label: 'Планировка определена'},
+                      {value: 'undefined', label: 'Планировка не определена'}
+                    ].map(option => (
+                      <div key={option.value} style={{marginBottom: '0.5rem', display: 'flex', alignItems: 'center'}}>
+                        <input
+                          type="checkbox"
+                          id={`planning-${option.value}`}
+                          checked={planningOptions.includes(option.value)}
+                          onChange={() => toggleArrayOption(planningOptions, setPlanningOptions, option.value)}
+                          style={{marginRight: '0.5rem'}}
+                        />
+                        <label htmlFor={`planning-${option.value}`} style={{color: 'var(--text-white)', cursor: 'pointer'}}>
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <small style={{
+                    color: '#68d391',
+                    fontSize: '0.8rem',
+                    marginTop: '0.5rem',
+                    display: 'block',
+                    background: 'rgba(72, 187, 120, 0.1)',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(72, 187, 120, 0.3)'
+                  }}>
+                    💡 Выбрано: {planningOptions.map(opt => opt === 'defined' ? 'Определена' : 'Не определена').join(', ')}
+                    <br/><strong>КРИТИЧНОЕ ВЛИЯНИЕ НА РАСЧЕТ:</strong>
+                    {planningOptions.includes('defined') ?
+                      ' 📐 ПЛАНИРОВКА ОПРЕДЕЛЕНА: Точный расчет по СП 484.1311500.2020 с оптимизацией количества датчиков на 15-30%. Расчет зон контроля по фактическому количеству помещений (макс. 5 помещений на ЗКПС). ЭКОНОМИЯ: 20-35% на оборудовании за счет точного позиционирования.' : ''}
+                    {planningOptions.includes('undefined') ?
+                      ' ⚠️ ПЛАНИРОВКА НЕ ОПРЕДЕЛЕНА: Расчет по нормативной плотности размещения (1 датчик на 85м²). Увеличение количества оборудования на 25-40% для создания запаса надежности. РИСК: возможна нехватка датчиков при нестандартной планировке. Обязательно увеличение запаса кабеля на 15%.' : ''}
+                  </small>
+                </div>
+                <div className="portal-grid-item">
+                  <label>Типы СОУЭ (множественный выбор)</label>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    padding: '0.75rem'
+                  }}>
+                    {[
+                      {value: 'basic', label: 'СОУЭ 1-3 типа'},
+                      {value: 'intelligent', label: 'СОУЭ 4-5 типа'}
+                    ].map(option => (
+                      <div key={option.value} style={{marginBottom: '0.5rem', display: 'flex', alignItems: 'center'}}>
+                        <input
+                          type="checkbox"
+                          id={`soue-${option.value}`}
+                          checked={soueOptions.includes(option.value)}
+                          onChange={() => toggleArrayOption(soueOptions, setSoueOptions, option.value)}
+                          style={{marginRight: '0.5rem'}}
+                        />
+                        <label htmlFor={`soue-${option.value}`} style={{color: 'var(--text-white)', cursor: 'pointer'}}>
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <small style={{
+                    color: '#68d391',
+                    fontSize: '0.8rem',
+                    marginTop: '0.5rem',
+                    display: 'block',
+                    background: 'rgba(72, 187, 120, 0.1)',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(72, 187, 120, 0.3)'
+                  }}>
+                    💡 Выбрано: {soueOptions.map(opt => opt === 'basic' ? 'Базовое' : 'Интеллектуальное').join(', ')}
+                    <br/><strong>КРИТИЧНОЕ ВЛИЯНИЕ НА РАСЧЕТ:</strong>
+                    {soueOptions.includes('basic') ?
+                      ' 🔊 СОУЭ 1-3 ТИПА: Базовое звуковое оповещение (тональные сигналы). Стандартное количество звуковых извещателей по СП 3.13130.2009 - 1 на 60м² при высоте потолков до 6м. ЭКОНОМИЯ: базовая стоимость оборудования. ОГРАНИЧЕНИЯ: не подходит для шумных производств.' : ''}
+                    {soueOptions.includes('intelligent') ?
+                      ' 📢 СОУЭ 4-5 ТИПА: Речевое оповещение с индивидуальными сообщениями по зонам. Увеличение количества оборудования на 60-80%: требуются усилители мощности, блоки управления речевыми сообщениями, громкоговорители вместо сирен. КРИТИЧНО: обязательно для зданий выше 28м и объектов Ф2-Ф4. Увеличение стоимости в 3-5 раз.' : ''}
+                  </small>
+                </div>
+                <div className="portal-grid-item">
+                  <label>Типы АУПТ (множественный выбор)</label>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    padding: '0.75rem'
+                  }}>
+                    {[
+                      {value: 'none', label: 'Без АУПТ'},
+                      {value: 'water', label: 'Водяное пожаротушение'},
+                      {value: 'gas', label: 'Газовое пожаротушение'},
+                      {value: 'powder', label: 'Порошковое пожаротушение'},
+                      {value: 'aerosol', label: 'Аэрозольное пожаротушение'}
+                    ].map(option => (
+                      <div key={option.value} style={{marginBottom: '0.5rem', display: 'flex', alignItems: 'center'}}>
+                        <input
+                          type="checkbox"
+                          id={`aupt-${option.value}`}
+                          checked={auptOptions.includes(option.value)}
+                          onChange={() => toggleArrayOption(auptOptions, setAuptOptions, option.value)}
+                          style={{marginRight: '0.5rem'}}
+                        />
+                        <label htmlFor={`aupt-${option.value}`} style={{color: 'var(--text-white)', cursor: 'pointer'}}>
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <small style={{
+                    color: '#68d391',
+                    fontSize: '0.8rem',
+                    marginTop: '0.5rem',
+                    display: 'block',
+                    background: 'rgba(72, 187, 120, 0.1)',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(72, 187, 120, 0.3)'
+                  }}>
+                    💡 Выбрано: {auptOptions.map(opt =>
+                      opt === 'none' ? 'Без АУПТ' :
+                      opt === 'water' ? 'Водяное' :
+                      opt === 'gas' ? 'Газовое' :
+                      opt === 'powder' ? 'Порошковое' :
+                      'Аэрозольное').join(', ')}
+                    <br/><strong>КРИТИЧНОЕ ВЛИЯНИЕ НА РАСЧЕТ:</strong>
+                    {auptOptions.includes('none') ? ' 🚫 БЕЗ АУПТ: Только пожарная сигнализация. Стандартное количество датчиков без дублирования. Базовая стоимость проекта.' : ''}
+                    {auptOptions.includes('water') ? ' 💧 ВОДЯНОЕ АУПТ: КРИТИЧНО увеличивает сложность: требуется 100% дублирование датчиков (алгоритм B), дополнительные релейные модули управления насосными станциями, запорной арматурой. Увеличение количества оборудования АПС в 2-2.5 раза.' : ''}
+                    {auptOptions.includes('gas') ? ' ⚡ ГАЗОВОЕ АУПТ: МАКСИМАЛЬНАЯ сложность: тройное дублирование датчиков, система блокировки вентиляции, герметизации помещений, управления газовыми клапанами. Увеличение оборудования АПС в 3-4 раза. ОПАСНОСТЬ: требует эвакуацию за 30 сек.' : ''}
+                    {auptOptions.includes('powder') ? ' 🌪️ ПОРОШКОВОЕ АУПТ: Специализированные датчики с защитой от ложных срабатываний, модули управления генераторами. Увеличение датчиков в 2 раза + специальные релейные модули.' : ''}
+                    {auptOptions.includes('aerosol') ? ' 🌨️ АЭРОЗОЛЬНОЕ АУПТ: Компактные системы с минимальным увеличением АПС оборудования (+30-50%). Автономные генераторы с интеграцией через релейные выходы.' : ''}
+                  </small>
+                </div>
+                <div className="portal-grid-item">
+                  <label>Управляемые системы (множественный выбор)</label>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    padding: '0.75rem'
+                  }}>
+                    {[
+                      {value: 'СОУЭ_1-3', label: 'СОУЭ 1-3 типа'},
+                      {value: 'СОУЭ_4-5', label: 'СОУЭ 4-5 типа'},
+                      {value: 'АУПТ', label: 'Автоматическое пожаротушение'},
+                      {value: 'ПДЗ', label: 'Противодымная защита'},
+                      {value: 'ОВК', label: 'Общеобменная вентиляция'}
+                    ].map(option => (
+                      <div key={option.value} style={{marginBottom: '0.5rem', display: 'flex', alignItems: 'center'}}>
+                        <input
+                          type="checkbox"
+                          id={`controlled-${option.value}`}
+                          checked={controlledSystems.includes(option.value)}
+                          onChange={() => toggleArrayOption(controlledSystems, setControlledSystems, option.value)}
+                          style={{marginRight: '0.5rem'}}
+                        />
+                        <label htmlFor={`controlled-${option.value}`} style={{color: 'var(--text-white)', cursor: 'pointer'}}>
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <small style={{
+                    color: '#68d391',
+                    fontSize: '0.8rem',
+                    marginTop: '0.5rem',
+                    display: 'block',
+                    background: 'rgba(72, 187, 120, 0.1)',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(72, 187, 120, 0.3)'
+                  }}>
+                    💡 Выбрано: {controlledSystems.join(', ')}
+                    <br/><strong>КРИТИЧНОЕ ВЛИЯНИЕ НА РАСЧЕТ:</strong>
+                    {controlledSystems.includes('СОУЭ_1-3') ? ' 🔊 УПРАВЛЕНИЕ СОУЭ 1-3: Базовые релейные выходы для звуковых извещателей. +2-4 релейных модуля на систему. Стандартная интеграция.' : ''}
+                    {controlledSystems.includes('СОУЭ_4-5') ? ' 📢 УПРАВЛЕНИЕ СОУЭ 4-5: КРИТИЧНО усложняет проект: требуются промышленные контроллеры управления речевыми зонами, интеграция с микрофонными консолями, блоки селекции зон. Увеличение количества модулей ввода-вывода в 3-5 раз.' : ''}
+                    {controlledSystems.includes('АУПТ') ? ' 💧 УПРАВЛЕНИЕ АУПТ: МАКСИМАЛЬНАЯ сложность: модули управления насосами, контроль давления, управление задвижками, блокировка лифтов. Требует 8-12 дополнительных релейных модулей + модули контроля аналоговых сигналов. Резервирование каналов связи.' : ''}
+                    {controlledSystems.includes('ПДЗ') ? ' 🌪️ УПРАВЛЕНИЕ ПДЗ: Управление дымоудалением и подпором воздуха: пуск вентиляторов, управление клапанами дымоудаления, контроль давления в шахтах. +6-10 релейных модулей. Обязательно резервированные каналы.' : ''}
+                    {controlledSystems.includes('ОВК') ? ' ❄️ УПРАВЛЕНИЕ ОВК: Отключение общеобменной вентиляции, управление противопожарными клапанами. +3-6 релейных модулей в зависимости от количества систем вентиляции.' : ''}
+                  </small>
+                </div>
+              </div>
+            </div>
+
 
             {/* Основные параметры */}
             <div style={{marginBottom: '2rem'}}>
