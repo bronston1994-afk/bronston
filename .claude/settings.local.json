@@ -17,7 +17,11 @@
       "Bash(powershell:*)",
       "Bash(git checkout:*)",
       "Bash(start http://localhost:5181)",
-      "Bash(start http://localhost:5182)"
+      "Bash(start http://localhost:5182)",
+      "Bash(start http://localhost:5185)",
+      "Bash(npm install:*)",
+      "Bash(start http://localhost:5186)",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []

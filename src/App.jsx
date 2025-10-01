@@ -1,7 +1,12 @@
 import { useState } from 'react'
+import APSPortal from './APSPortal'
 import './App.css'
 
 function App() {
+  // Переключатель между старым и новым интерфейсом
+  const [useNewPortal, setUseNewPortal] = useState(true)
+
+  // Старый интерфейс калькулятора - состояния должны быть объявлены безусловно
   // Основные состояния здания
   const [aboveGroundArea, setAboveGroundArea] = useState(5000) // Надземная часть
   const [undergroundArea, setUndergroundArea] = useState(0) // Подземная автостоянка
@@ -1073,8 +1078,47 @@ function App() {
     setResults(filteredResults)
   }
 
+  // Если включен новый портал, показываем его
+  if (useNewPortal) {
+    return (
+      <div>
+        <div style={{
+          position: 'fixed',
+          top: 10,
+          right: 10,
+          zIndex: 9999,
+          background: 'rgba(0,0,0,0.7)',
+          color: 'white',
+          padding: '8px 12px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          cursor: 'pointer'
+        }} onClick={() => setUseNewPortal(false)}>
+          🔄 Переключить на старый интерфейс
+        </div>
+        <APSPortal />
+      </div>
+    )
+  }
+
   return (
     <div>
+      {/* Переключатель на новый портал */}
+      <div style={{
+        position: 'fixed',
+        top: 10,
+        left: 10,
+        zIndex: 9999,
+        background: 'rgba(0,0,0,0.7)',
+        color: 'white',
+        padding: '8px 12px',
+        borderRadius: '20px',
+        fontSize: '12px',
+        cursor: 'pointer'
+      }} onClick={() => setUseNewPortal(true)}>
+        🆕 Переключить на новый портал
+      </div>
+
       {/* Навигационная панель портала */}
       <header className="portal-header">
         <nav className="portal-nav">
@@ -2997,6 +3041,24 @@ function App() {
           Расчеты выполняются согласно СП 5.13130.2009 и ГОСТ Р 53325-2012
         </p>
       </footer>
+      {/* Переключатель на новый портал */}
+      <div style={{
+        position: 'fixed',
+        bottom: 20,
+        right: 20,
+        background: 'linear-gradient(135deg, #1677ff, #0958d9)',
+        color: 'white',
+        padding: '12px 20px',
+        borderRadius: '25px',
+        cursor: 'pointer',
+        boxShadow: '0 4px 20px rgba(22, 119, 255, 0.3)',
+        fontSize: '14px',
+        fontWeight: '600',
+        zIndex: 9999,
+        transition: 'all 0.3s ease'
+      }} onClick={() => setUseNewPortal(true)}>
+        🚀 Попробовать новый портал АПС
+      </div>
     </div>
   )
 }

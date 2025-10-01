@@ -1,0 +1,546 @@
+/* Стили для компонента визуализации результатов */
+
+.results-visualizer {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.results-placeholder {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8c8c8c;
+}
+
+.results-header {
+  background: linear-gradient(135deg, #f8f9fa, #e6f4ff);
+  padding: 20px 30px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.results-header h3 {
+  margin: 0;
+  color: #1677ff;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.project-badge {
+  background: rgba(22, 119, 255, 0.1);
+  color: #1677ff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.results-tabs {
+  display: flex;
+  background: #f8f9fa;
+  border-bottom: 1px solid #f0f0f0;
+  overflow-x: auto;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  color: #8c8c8c;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-button:hover {
+  background: rgba(22, 119, 255, 0.05);
+  color: #1677ff;
+}
+
+.tab-button.active {
+  background: white;
+  color: #1677ff;
+  border-bottom-color: #1677ff;
+}
+
+.tab-icon {
+  font-size: 1.1rem;
+}
+
+.results-content {
+  padding: 30px;
+}
+
+/* Обзор */
+.results-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.summary-card {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.summary-card.primary {
+  background: linear-gradient(135deg, #1677ff, #0958d9);
+  color: white;
+  border: none;
+}
+
+.card-icon {
+  font-size: 2.2rem;
+  opacity: 0.8;
+}
+
+.summary-card.primary .card-icon {
+  opacity: 1;
+}
+
+.card-content h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-card.primary .card-content h3 {
+  opacity: 0.9;
+}
+
+.card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #1677ff;
+}
+
+.summary-card.primary .card-value {
+  color: white;
+}
+
+.card-subtitle {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  line-height: 1.3;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 30px;
+}
+
+.chart-container {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.chart-container h4 {
+  margin: 0 0 20px 0;
+  color: #262626;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Таблица оборудования */
+.equipment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.equipment-table {
+  overflow-x: auto;
+}
+
+.equipment-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.equipment-table th,
+.equipment-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.equipment-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #262626;
+  font-size: 0.9rem;
+}
+
+.equipment-table td {
+  font-size: 0.9rem;
+}
+
+.equipment-table tfoot td {
+  background: #f8f9fa;
+  font-weight: 600;
+  border-top: 2px solid #1677ff;
+}
+
+.equipment-chart {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.equipment-chart h4 {
+  margin: 0 0 20px 0;
+  color: #262626;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Анализ стоимости */
+.costs-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.cost-breakdown {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.cost-breakdown h4 {
+  margin: 0 0 20px 0;
+  color: #262626;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.cost-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.metric-card {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.metric-card h5 {
+  margin: 0 0 12px 0;
+  color: #8c8c8c;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1677ff;
+}
+
+/* Технические данные */
+.technical-data {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.tech-specs {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.tech-specs h4 {
+  margin: 0 0 24px 0;
+  color: #262626;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.spec-group {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.spec-group h5 {
+  margin: 0 0 16px 0;
+  color: #1677ff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.spec-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e6f4ff;
+  font-size: 0.9rem;
+}
+
+.spec-item:last-child {
+  border-bottom: none;
+}
+
+.spec-item span:first-child {
+  color: #8c8c8c;
+  font-weight: 500;
+}
+
+.spec-item span:last-child {
+  color: #262626;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Всплывающие подсказки */
+.custom-tooltip {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tooltip-label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Результаты в мастере */
+.results-summary-quick {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.calculation-progress {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.progress-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid #1677ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 30px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.calculation-progress h3 {
+  color: #1677ff;
+  margin-bottom: 10px;
+}
+
+.calculation-progress p {
+  color: #8c8c8c;
+  margin-bottom: 30px;
+}
+
+.progress-steps {
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.progress-step {
+  padding: 8px 0;
+  font-size: 0.9rem;
+  opacity: 0.5;
+}
+
+.progress-step.completed {
+  opacity: 1;
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.progress-step.active {
+  opacity: 1;
+  color: #1677ff;
+  font-weight: 500;
+}
+
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8c8c8c;
+}
+
+.calculation-recommendations {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.calculation-recommendations h4 {
+  margin: 0 0 16px 0;
+  color: #262626;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.recommendation.success {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+}
+
+.recommendation.warning {
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+}
+
+.recommendation.info {
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+}
+
+.recommendation-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.recommendation-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.regulatory-references {
+  background: #f0f9ff;
+  border: 1px solid #bae7ff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.regulatory-references h4 {
+  margin: 0 0 12px 0;
+  color: #1677ff;
+}
+
+.regulatory-references ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.regulatory-references li {
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: #595959;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .results-content {
+    padding: 20px;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cost-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .specs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .results-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab-button {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .equipment-table {
+    font-size: 0.8rem;
+  }
+
+  .equipment-table th,
+  .equipment-table td {
+    padding: 8px 10px;
+  }
+}
